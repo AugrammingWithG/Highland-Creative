@@ -56,50 +56,6 @@
   gateStatus();
   setInterval(gateStatus, 60000);
 
-  /* Seasons: the tree re-leafs */
-  var SEASONS = {
-    spring: { img: "spring-1.jpg", name: "Spring in the Highlands" },
-    summer: { img: "summer-1.jpg", name: "Summer in the Highlands" },
-    autumn: { img: "autumn-1.jpg", name: "Autumn in the Highlands" },
-    winter: { img: "winter-1.jpg", name: "Winter in the Highlands" }
-  };
-  function currentSeason() {
-    var m = new Date().getMonth();
-    if (m >= 8 && m <= 10) return "spring";
-    if (m === 11 || m <= 1) return "summer";
-    if (m >= 2 && m <= 4) return "autumn";
-    return "winter";
-  }
-  var frame = $(".plate-frame");
-  function setSeason(s, animate) {
-    if (!SEASONS[s]) s = currentSeason();
-    root.setAttribute("data-season", s);
-    $$(".seasons button").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.season === s)); });
-    $$("[data-season-name]").forEach(function (el) { el.textContent = SEASONS[s].name; });
-    if (!frame) return;
-    var current = $("img:last-of-type", frame);
-    var src = IMG + SEASONS[s].img;
-    if (current && current.getAttribute("src") === src) return;
-    if (!animate || reduceMotion || !current) { if (current) { current.src = src; } return; }
-    var next = new Image();
-    next.alt = current.alt; next.src = src; next.className = "incoming"; next.width = 2500; next.height = 660;
-    next.decoding = "async";
-    frame.appendChild(next);
-    var go = function () {
-      requestAnimationFrame(function () { requestAnimationFrame(function () { next.classList.add("in"); }); });
-      setTimeout(function () { $$("img", frame).forEach(function (im) { if (im !== next) im.remove(); }); next.className = ""; }, 1200);
-    };
-    if (next.complete) go(); else next.addEventListener("load", go, { once: true });
-  }
-  $$(".seasons button").forEach(function (b) {
-    b.addEventListener("click", function () { setSeason(b.dataset.season, true); store("hc-season", b.dataset.season); });
-  });
-  setSeason(store("hc-season") || currentSeason(), false);
-
-  /* Tag swing on load */
-  var hang = $(".tag-hang");
-  if (hang && !reduceMotion) hang.classList.add("swing");
-
   /* Entry forms (front-end only) */
   var CLASS_PARAM = new URLSearchParams(location.search).get("class");
   $$("form[data-entry]").forEach(function (form) {
@@ -269,6 +225,9 @@
     dlg.addEventListener("click", function (ev) { if (ev.target === dlg) dlg.close(); });
     dlg.addEventListener("keydown", function (ev) { if (ev.key === "ArrowRight") step(1); if (ev.key === "ArrowLeft") step(-1); });
     dlg.addEventListener("close", function () { if (history.replaceState) history.replaceState(null, "", location.pathname + location.search); if (opener) opener.focus(); });
+    document.addEventListener("hc:open-entry", function (ev) {
+      list.forEach(function (e, i) { if (e.slug === ev.detail) { opener = null; open(i); } });
+    });
     if (location.hash) {
       var slug = location.hash.slice(1);
       list.forEach(function (e, i) { if (e.slug === slug) { opener = $('.entry-card[data-i="' + i + '"] button', grid); setTimeout(function () { open(i); }, 150); } });

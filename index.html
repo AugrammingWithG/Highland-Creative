@@ -4,16 +4,22 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>For Highland Creative · The Collaborative Space</title>
-<meta name="description" content="Five quick wins for highlandcreative.com.au, a working redesign concept, and a partnership idea from The Collaborative Space.">
+<meta name="description" content="Five quick wins for highlandcreative.com.au and a living 3D redesign concept from The Collaborative Space.">
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#561642">
 <link rel="icon" href="assets/hc/favicon50x50.png">
 <link rel="preload" href="concept/assets/fonts/Bevan-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="concept/assets/css/site.css">
 <link rel="stylesheet" href="assets/pitch/pitch.css">
+<link rel="stylesheet" href="concept/assets/css/world.css">
 </head>
-<body class="pitch">
+<body class="pitch" data-world="pitch">
+<canvas id="world" data-base="assets/hc/" aria-hidden="true"></canvas>
+<div class="curtain" aria-hidden="true"><span>Highland Creative</span></div>
+<div id="world-tip" aria-hidden="true"></div>
+<div class="thread" aria-hidden="true"><i></i></div>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-drag" viewBox="0 0 24 24"><path d="M9 11V6a1.5 1.5 0 0 1 3 0v4m0-1V4.5a1.5 1.5 0 0 1 3 0V10m0-1a1.5 1.5 0 0 1 3 0v5a6 6 0 0 1-6 6h-1a6 6 0 0 1-5-2.7L3.6 14a1.5 1.5 0 0 1 2.5-1.7L8 14.5V11a1.5 1.5 0 0 1 3 0"/><path d="M3 4l-1.5 1.5L3 7M21 4l1.5 1.5L21 7"/></symbol>
   <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
   <symbol id="i-ext" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
 </svg>
@@ -27,10 +33,10 @@
 </header>
 
 <main id="main">
-  <section class="wrap pitch-hero" aria-labelledby="pitch-title">
+  <section class="wrap pitch-hero" data-station="meadow" aria-labelledby="pitch-title">
     <div>
       <h1 id="pitch-title">Forty-one years of good work, <em>shown the way it deserves.</em></h1>
-      <p class="lede">We spent some time with highlandcreative.com.au and your portfolio. Here are five quick wins we noticed, a working concept of what the site could become, and an idea for how we could help.</p>
+      <p class="lede">We spent some time with highlandcreative.com.au and your portfolio. Here are five quick wins we noticed, and a living, 3D concept of what the site could become.</p>
       <div class="cover-actions">
         <a class="btn btn-plum" href="concept/index.html">Open the concept site<svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a>
         <a class="btn btn-line" href="#wins">See the quick wins</a>
@@ -41,16 +47,15 @@
         <li><a href="#compare">Today and tomorrow<span class="leader" aria-hidden="true"></span><small>side by side</small></a></li>
         <li><a href="#wins">Five quick wins<span class="leader" aria-hidden="true"></span><small>under 2 hours</small></a></li>
         <li><a href="#help">Where we can help<span class="leader" aria-hidden="true"></span><small>6 new services</small></a></li>
-        <li><a href="#plan">How we’d work together<span class="leader" aria-hidden="true"></span><small>3 steps</small></a></li>
         <li><a href="#try">Try the concept<span class="leader" aria-hidden="true"></span><small>6 pages</small></a></li>
       </ol>
     </nav>
   </section>
 
-  <section class="compare on-dark" id="compare" aria-labelledby="compare-title">
+  <section class="compare on-dark" id="compare" data-station="tree" aria-labelledby="compare-title">
     <div class="wrap">
       <h2 id="compare-title">Same studio, same words, a new stage.</h2>
-      <p class="section-intro">Every fact, photo, project and testimonial in the concept comes from your current site. Only the presentation is new: your work set out like a Southern Highlands show pavilion, in your plum and olive.</p>
+      <p class="section-intro">Every fact, photo, project and testimonial in the concept comes from your current site. Only the presentation is new: your own tree, alive in 3D on the hill and turning through the seasons, and your work hanging in a show pavilion, in your plum and olive. That’s the same world you’re looking at behind this page.</p>
       <div class="compare-grid">
         <figure class="shot-frame">
           <div class="browser"><div class="bar"><i></i><i></i><i></i><span>highlandcreative.com.au</span></div>
@@ -59,14 +64,14 @@
         </figure>
         <figure class="shot-frame">
           <div class="browser"><div class="bar"><i></i><i></i><i></i><span>Concept · not published</span></div>
-            <img src="assets/pitch/concept-home.png" alt="The redesign concept homepage: a plum schedule cover with the headline 'Graphic &amp; web design that works' and a manila entry tag" width="1440" height="900" loading="lazy"></div>
+            <img src="assets/pitch/concept-home.png" alt="The 3D redesign concept homepage: Highland Creative's tree, alive on a green hill, between a plum cover card and a hanging manila entry tag" width="1440" height="900" loading="lazy"></div>
           <figcaption><span>The concept</span><a href="concept/index.html">Open it</a></figcaption>
         </figure>
       </div>
     </div>
   </section>
 
-  <section class="wins wrap" id="wins" aria-labelledby="wins-title">
+  <section class="wins wrap" id="wins" data-station="ribbons" aria-labelledby="wins-title">
     <h2 id="wins-title" style="font-size:var(--fs-h2);max-width:20ch">Five quick wins we noticed along the way</h2>
     <p class="section-intro">Each one is small, and together they take under two hours. We’re happy to fix them for you at no cost, as a way to show how we work.</p>
     <ol class="wins-grid">
@@ -129,7 +134,7 @@
     <p class="footnote">One more small thing: the team page mentions “over 27 years” of experience, but the studio started in 1985. That’s 41 years, and worth saying proudly.</p>
   </section>
 
-  <section class="help" id="help" aria-labelledby="help-title">
+  <section class="help" id="help" data-station="sky" aria-labelledby="help-title">
     <div class="wrap">
       <div class="section-title" style="display:block">
         <h2 id="help-title" style="font-size:var(--fs-h2)">Where we can help</h2>
@@ -146,26 +151,16 @@
     </div>
   </section>
 
-  <section class="plan wrap" id="plan" aria-labelledby="plan-title">
-    <h2 id="plan-title" style="font-size:var(--fs-h2);max-width:22ch">How we’d work together</h2>
-    <p class="section-intro">Low risk for you, and a fair test for us.</p>
-    <ol class="class-list steps-list">
-      <li><span class="class-no" aria-hidden="true">1</span><div class="class-line"><h3>We fix the quick wins</h3><span class="leader" aria-hidden="true"></span><span class="fee money">On us</span></div><p>The five items above, done carefully on your live site, with a short note of what changed.</p></li>
-      <li><span class="class-no" aria-hidden="true">2</span><div class="class-line"><h3>One trial project</h3><span class="leader" aria-hidden="true"></span><span class="fee">Quoted up front</span></div><p>Pick one client who wants something from the list above. We deliver it under your name, to your standard.</p></li>
-      <li><span class="class-no" aria-hidden="true">3</span><div class="class-line"><h3>An ongoing partnership</h3><span class="leader" aria-hidden="true"></span><span class="fee">Only if it works for you</span></div><p>Extra hands when you need them. You keep the clients and the relationships, and we add capacity and new services.</p></li>
-    </ol>
-  </section>
-
-  <section class="tryit" id="try" aria-labelledby="try-title">
+  <section class="tryit" id="try" data-station="pavilion" aria-labelledby="try-title">
     <div class="wrap">
       <div>
         <h2 id="try-title" style="font-size:var(--fs-h2)">Try the concept</h2>
-        <p class="section-intro">It’s a working mock-up, not a picture. Here’s what to click.</p>
+        <p class="section-intro">It’s a working, living mock-up, not a picture. Here’s what to touch.</p>
       </div>
       <ul class="try-list">
-        <li><a href="concept/index.html">The seasons</a><span>Change the hero tree from spring to winter. It defaults to today’s Highlands season.</span></li>
-        <li><a href="concept/index.html#entry-form">The entry tag</a><span>A real enquiry form with friendly error messages and an “entry received” stamp.</span></li>
-        <li><a href="concept/work.html">The pavilion</a><span>All 28 projects, with filters, search and a viewer that links to live client sites.</span></li>
+        <li><a href="concept/index.html">The living hill</a><span>Drag the 3D tree to spin it, and scroll to turn it from spring through summer and autumn to winter.</span></li>
+        <li><a href="concept/index.html#entry-form">The entry tag</a><span>Grab it and fling it: it swings on its string. It’s also a real enquiry form with an “entry received” stamp.</span></li>
+        <li><a href="concept/work.html">The pavilion</a><span>Drag to spin the 3D pavilion of all 28 projects, or filter and search them, with links to the live client sites.</span></li>
         <li><a href="concept/services.html#care">Care Plan calculator</a><span>Your $360 + GST plan, priced for one website or twenty.</span></li>
         <li><a href="concept/index.html">Open now</a><span>The header shows whether the studio is open, in Sydney time. It uses placeholder hours (Mon–Fri, 9–5) until you confirm yours.</span></li>
         <li><a href="concept/about.html#manifesto">Your manifesto</a><span>Every line, set as the studio’s own conditions of entry.</span></li>
@@ -174,19 +169,16 @@
   </section>
 </main>
 
-<footer class="sign on-dark" aria-labelledby="sign-title">
+<footer class="pitch-end" data-station="dusk">
   <div class="wrap">
-    <div>
-      <h2 id="sign-title">Could we have 20 minutes?</h2>
-      <p>We’d love to walk you through the concept and hear what you think, including what we got wrong. No obligation, and the quick-win fixes are yours either way.</p>
-      <p class="signature">The Collaborative Space</p>
-      <div class="cover-actions">
-        <a class="btn btn-manila" href="mailto:[your-email]?subject=Highland%20Creative%20%E2%80%94%2020%20minutes">Book a 20-minute chat</a>
-        <a class="btn btn-line" href="concept/index.html">Open the concept</a>
-      </div>
-    </div>
-    <p class="fine">[Your name] · [your email] · [your phone]. The concept uses Highland Creative’s own words, images and portfolio. It hasn’t been published anywhere and was prepared only for Steven, Helen and Reece.</p>
+    <p>Dusk on the hill. The concept is waiting for you.</p>
+    <div class="cover-actions"><a class="btn btn-manila" href="concept/index.html">Open the concept<svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a></div>
+    <small>Prepared by The Collaborative Space for Steven, Helen and Reece Jones. The concept uses Highland Creative’s own words, images and portfolio.</small>
   </div>
 </footer>
+<script src="concept/assets/js/data.js"></script>
+<script src="concept/assets/js/vendor/three.min.js"></script>
+<script src="concept/assets/js/world.js"></script>
+<script src="concept/assets/js/motion.js"></script>
 </body>
 </html>
