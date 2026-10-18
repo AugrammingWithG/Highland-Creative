@@ -317,3 +317,6 @@ html:not(.webgl) .enter { background: var(--plum-night); }
   }
 }
 @media (prefers-contrast: more) { .webgl main > *:not(.hero)::before { background: rgb(22 9 19 / .85) !important; } }
+
+/* tints always span the full window, even on sections that are a centred .wrap, so no hard side edge */
+.webgl main > *:not(.hero)::before { left: calc(50% - 50vw); right: calc(50% - 50vw); }
