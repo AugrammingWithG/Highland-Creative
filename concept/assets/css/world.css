@@ -1,8 +1,8 @@
 /* Highland Creative concept, revision 2: the whole site is alive.
    The 3D world, panels over it, the page-turn curtain, reveals, tilt and magnetic motion. */
 html, body { overflow-x: clip; }
-#world { position: fixed; inset: 0; width: 100vw; height: 100vh; height: 100lvh; display: block; z-index: 0; pointer-events: none; }
-.webgl body { background: #d9eef9; }
+#world { position: fixed; inset: 0; width: 100%; height: 100%; display: block; z-index: 0; pointer-events: none; }
+.webgl body { background: #6d5a6e; }
 .no-webgl #world { display: none; }
 .concept-bar, .site-head, main, footer, .pitch-head { position: relative; z-index: 2; }
 .site-head { position: sticky; z-index: 40; }
@@ -137,8 +137,9 @@ body.world-point { cursor: pointer; }
 /* ---------- the swinging tag ---------- */
 .tag-hang { transform-origin: 50% 0; transform-style: preserve-3d; will-change: transform; }
 .motion .tag-hang.swing { animation: none; }
-.tag-head { cursor: grab; touch-action: none; }
-.tag-hang.grabbed .tag-head { cursor: grabbing; }
+.tag-head { cursor: auto; }
+.tag-grip { position: absolute; left: 0; right: 0; top: 0; height: 46px; z-index: 2; cursor: grab; touch-action: none; }
+.tag-hang.grabbed .tag-grip { cursor: grabbing; }
 
 /* ---------- magnetic controls ---------- */
 .btn, .ribbons a, .seasons button { transform: translate(var(--mx, 0px), var(--my, 0px)); transition: background-color .25s, color .25s, transform .35s var(--ease-out), box-shadow .25s; }

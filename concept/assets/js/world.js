@@ -600,11 +600,13 @@
     pavilion: { pos: V(PAV.x, PAV.y + (mobile ? 4.4 : 4.6), PAV.z + (mobile ? 25 : 21)), look: V(PAV.x, PAV.y + (mobile ? 4.6 : 3.7), PAV.z), dusk: .05, carousel: true },
     rosette: { pos: V(ROS.x, ROS.y + 7.2, ROS.z + 18), look: V(ROS.x, ROS.y + 7, ROS.z), dusk: .12, rosette: true },
     meadow: { pos: V(-34, 30, 104), look: V(4, 6, -10), dusk: .18 },
-    studio: { pos: V(TREE.x + 15, TREE.y + 9, TREE.z + 22), look: V(TREE.x - 2, TREE.y + 8, TREE.z), dusk: .34 },
+    studio: { pos: V(TREE.x + 9, TREE.y + 7, TREE.z + 30), look: V(TREE.x - 5, TREE.y + 5.5, TREE.z - 2), dusk: .34 },
     dusk: { pos: V(TREE.x + 4, TREE.y + 5, TREE.z + 32), look: V(TREE.x - 5, TREE.y + 6, TREE.z), dusk: 1 }
   };
   if (mobile) { ST.tree.pos = V(TREE.x + 3, TREE.y + 7, TREE.z + 52); ST.tree.look = V(TREE.x, TREE.y + 11, TREE.z); }
-  var PAGE_STATION = { home: "tree", services: "ribbons", "wild-apricot": "sky", work: "pavilion", about: "studio", contact: "dusk", pitch: "meadow" };
+  ST.hero = { pos: ST.tree.pos.clone(), look: ST.tree.look.clone(), dusk: .86, orbit: true };
+  ST.eve = { pos: ST.meadow.pos.clone(), look: ST.meadow.look.clone(), dusk: .9 };
+  var PAGE_STATION = { home: "hero", services: "ribbons", "wild-apricot": "sky", work: "pavilion", about: "studio", contact: "dusk", pitch: "meadow" };
 
   var anchors = [], hero = document.querySelector("[data-hero]");
   function measure() {

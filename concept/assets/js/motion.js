@@ -98,38 +98,36 @@
     if (reduce) return;
     var rest = parseFloat(getComputedStyle(hang).getPropertyValue("--rest")) || (idx % 2 ? -1.4 : 2.2);
     var a = rest - (idx === 0 ? 11 : 6), v = 0, yaw = 0, yv = 0, grab = null, alive = true;
-    var lastX = null, lastT = 0;
+    var lastX = null, lastT = 0, calm = false;
     function tick() {
       if (grab) {
         var r = hang.getBoundingClientRect(), px = r.left + r.width / 2, py = r.top;
         var target = clamp(Math.atan2(-(grab.x - px), Math.max(40, grab.y - py)) * 57.3, -38, 38);
         v = (target - a) * .35; a += v;
       } else {
-        v += -(a - rest) * .028 - v * .045; a += v;
+        if (calm) { v += -(a - rest) * .12 - v * .32; } else { v += -(a - rest) * .028 - v * .045; }
+        a += v;
       }
-      yv += -yaw * .03 - yv * .06; yaw += yv;
+      yv += -yaw * (calm ? .1 : .03) - yv * (calm ? .3 : .06); yaw += yv;
       hang.style.transform = "rotate(" + a.toFixed(3) + "deg) rotateY(" + (yaw + v * 1.6).toFixed(2) + "deg)";
       if (alive) requestAnimationFrame(tick);
     }
     requestAnimationFrame(tick);
-    hang.addEventListener("pointermove", function (e) {
-      if (grab) { grab.x = e.clientX; grab.y = e.clientY; return; }
-      var ae = document.activeElement;
-      if (ae && hang.contains(ae) && /^(INPUT|SELECT|TEXTAREA)$/.test(ae.tagName)) { lastX = null; return; }
-      var now = performance.now();
-      if (lastX !== null && now - lastT < 80) { v += clamp((e.clientX - lastX) * .045, -2.2, 2.2); yv += clamp((e.clientX - lastX) * .25, -6, 6); }
-      lastX = e.clientX; lastT = now;
-    });
-    hang.addEventListener("pointerleave", function () { lastX = null; });
-    var handle = hang.querySelector(".tag-head") || hang;
+    // hovering, typing or tabbing into the form settles the tag and holds it still
+    hang.addEventListener("pointerenter", function () { calm = true; });
+    hang.addEventListener("pointerleave", function () { if (!hang.contains(document.activeElement)) calm = false; });
+    hang.addEventListener("focusin", function () { calm = true; });
+    hang.addEventListener("focusout", function () { setTimeout(function () { if (!hang.contains(document.activeElement) && !hang.matches(":hover")) calm = false; }, 0); });
+    hang.addEventListener("pointermove", function (e) { if (grab) { grab.x = e.clientX; grab.y = e.clientY; } });
+    var handle = hang.querySelector(".tag-grip") || hang.querySelector(".tag-head") || hang;
     handle.addEventListener("pointerdown", function (e) {
       grab = { x: e.clientX, y: e.clientY }; handle.setPointerCapture(e.pointerId); hang.classList.add("grabbed");
     });
     handle.addEventListener("pointermove", function (e) { if (grab) { grab.x = e.clientX; grab.y = e.clientY; } });
-    function release() { if (!grab) return; grab = null; hang.classList.remove("grabbed"); yv += v * 4; }
+    function release() { if (!grab) return; grab = null; hang.classList.remove("grabbed"); calm = false; yv += v * 4; setTimeout(function () { if (hang.matches(":hover")) calm = true; }, 1400); }
     handle.addEventListener("pointerup", release); handle.addEventListener("pointercancel", release);
     // a lodged entry thumps the tag
-    hang.addEventListener("submit", function () { v -= 3.4; yv += 14; }, true);
+    hang.addEventListener("submit", function () { v -= 1.6; yv += 6; }, true);
   });
 
   /* ---------- magnetic buttons ---------- */
