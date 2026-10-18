@@ -473,7 +473,7 @@ html:not(.webgl) .quote-field { display: none; }
 
 /* proposed: the stamp lands, the rule lines draw in */
 .motion .sheet:not(.in) .stamp { opacity: 0; transform: rotate(-7deg) scale(1.9); }
-.motion .sheet .stamp { transition: transform .55s cubic-bezier(.2, 1.5, .4, 1) .55s, opacity .2s .55s; }
+.motion .sheet .stamp { transition: transform .55s cubic-bezier(.16, 1, .3, 1) .55s, opacity .2s .55s; }
 .webgl .prop-list li { position: relative; border-bottom-color: transparent; }
 .webgl .prop-list li::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; background: rgb(251 246 238 / .4); transform: scaleX(0); transform-origin: left; transition: transform 1.2s var(--ease-out) calc(var(--d, 0) * 90ms + .3s); }
 .webgl .prop-list li.in::after { transform: scaleX(1); }
