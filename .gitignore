@@ -1,0 +1,5 @@
+# working files from the design tools, not part of the site
+.claude/
+.impeccable/review/
+.impeccable/questions/
+.impeccable/hook.cache.json

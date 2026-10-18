@@ -1,0 +1,22 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-font",
+        "value": "cascadia mono",
+        "createdAt": "2026-10-17T00:38:35.707Z",
+        "reason": "Claude: mono is used only for literal code snippets (<code> in pitch quick-win tags, assets/pitch/pitch.css .win code); craft floor permits monospace for real code"
+      },
+      {
+        "rule": "marquee",
+        "value": "*",
+        "files": [
+          "concept/index.html"
+        ],
+        "createdAt": "2026-10-18T18:16:47.965Z"
+      }
+    ]
+  }
+}
