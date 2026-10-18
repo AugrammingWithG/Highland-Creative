@@ -352,22 +352,6 @@ main > section, main > .wrap, main > div, .gate, .pitch-end { scroll-snap-align:
 /* gallery strip */
 .gallery-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1.5rem 3rem; }
 .gallery-head .section-intro { max-width: 42ch; }
-.strip { list-style: none; display: flex !important; gap: clamp(1rem, 2.4vw, 2rem); overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory;
-  margin-top: 2.5rem !important; padding: .5rem max(var(--gutter), calc((100vw - var(--wrap)) / 2)) 1.5rem; scroll-padding-inline: max(var(--gutter), calc((100vw - var(--wrap)) / 2));
-  cursor: grab; scrollbar-width: thin; scrollbar-color: var(--manila) transparent; }
-.strip.dragging { cursor: grabbing; scroll-snap-type: none; }
-.strip .entry-card, .strip .entry-card:nth-child(n) { flex: 0 0 clamp(270px, 34vw, 520px); grid-column: auto; grid-row: auto; scroll-snap-align: start; }
-.strip .entry-card a, .strip .entry-card:nth-child(n) a { display: block; padding: 0 !important; transform: none; }
-.strip .entry-card .shot, .strip .entry-card:nth-child(1) .shot { aspect-ratio: 4 / 3; height: auto; min-height: 0; border-radius: 3px; overflow: hidden; box-shadow: 0 30px 50px -28px rgb(0 0 0 / .8); }
-.strip .entry-card h3, .strip .entry-card:nth-child(1) h3 { font-size: clamp(1.1rem, 1rem + .4vw, 1.4rem); margin-top: 1rem; }
-.strip .entry-card .meta { color: var(--manila); }
-.strip .mini-tag { display: block; top: -8px; right: 14px; }
-.strip img { pointer-events: none; -webkit-user-drag: none; user-select: none; }
-.strip .entry-card a:hover .shot img { transform: scale(1.04); }
-.zoomer { position: fixed; z-index: 450; object-fit: cover; background: #f2f2f2; transition: left .7s cubic-bezier(.7, 0, .2, 1), top .7s cubic-bezier(.7, 0, .2, 1), width .7s cubic-bezier(.7, 0, .2, 1), height .7s cubic-bezier(.7, 0, .2, 1); }
-.zoomer.contain { object-fit: contain; }
-.zoomer.go { left: 0 !important; top: 0 !important; width: 100vw !important; height: 100vh !important; }
-html:not(.webgl) .strip { padding-bottom: 2rem; }
 
 /* judges: centred quote and the clients' logos */
 .judges .wrap { display: block !important; max-width: 60rem; text-align: center; }
