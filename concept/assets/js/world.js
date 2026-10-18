@@ -424,6 +424,9 @@
     doc.setAttribute("data-season", name.toLowerCase());
     [].forEach.call(document.querySelectorAll("[data-season-name]"), function (el) { el.textContent = name + " in the Highlands"; });
     seasonBtns.forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.season === name.toLowerCase())); });
+    var SUB = ["September – November · Tulip Time in Bowral", "December – February · long golden evenings", "March – May · the Highlands turn to gold", "June – August · frost on the pasture"];
+    var sw = document.querySelector("[data-season-word]"), ss = document.querySelector("[data-season-sub]");
+    if (sw) { sw.textContent = name; ss.textContent = SUB[idx]; var box = sw.parentNode; box.classList.remove("swap"); void box.offsetWidth; box.classList.add("swap"); }
   }
 
   /* ---------- pointer: gusts and orbit drag on the hero ---------- */

@@ -38,6 +38,8 @@ HC.entries = [
   { slug: "red-olive-restaurant", title: "Red Olive Restaurant", cls: "brand", img: "red-olive-new.jpg", brief: "Branding and identity reflecting the cuisine and ambience of a tapas restaurant and catering company.", contain: true }
 ];
 
+HC.cut = function (e) { return "cut/" + e.img.split("/").pop().replace(/\.(jpg|png)$/, ".webp"); };
+
 HC.judges = [
   { name: "Jules Van de Sande", role: "Director, Sensoria Hair", quote: "Every day I am receiving compliments and leads from my business website. I cannot express my thanks and appreciation to the amazing staff at Highland Creative! Steven and Helen are the pinnacle of professionalism, they listen to your needs and nothing is a problem." },
   { name: "Martin Rambow", role: "Managing Director, Finance for Life", quote: "I am very happy with the website Highland Creative has designed and developed for Finance For Life and it has become a strong marketing tool for the company. They have given me a very professional, well designed, fast loading and competitive web site that is easy to navigate and looks great." },

@@ -85,6 +85,7 @@
           </span>
         </div>
       </div>
+      <div class="season-word" aria-hidden="true"><span class="sw-word" data-season-word>Spring</span><span class="sw-sub" data-season-sub>September – November · Tulip Time in Bowral</span></div>
       <div class="tree-window" aria-hidden="true"><span class="world-hint"><svg aria-hidden="true"><use href="#i-drag"/></svg>Drag the tree · scroll to turn the seasons</span></div>
       <p class="scroll-cue" aria-hidden="true"><span>Scroll to turn the seasons</span><i></i></p>
     </div>
@@ -104,19 +105,24 @@
           <li><span class="class-no" aria-hidden="true">6</span><div class="class-line"><h3><a href="services.html#copy">Copywriting</a></h3><span class="leader" aria-hidden="true"></span><span class="fee">By quote</span></div><p>Clear, concise copy for websites, brochures, ads and newsletters, plus proofreading and editing.</p></li>
           <li><span class="class-no" aria-hidden="true">7</span><div class="class-line"><h3><a href="services.html#care">Website Care Plan</a></h3><span class="leader" aria-hidden="true"></span><span class="fee money num">$360 + GST a year</span></div><p>Monthly updates and off-site backups that keep a WordPress website fast and secure.</p></li>
         </ol>
-      </div>
-      <div class="schedule-aside">
-        <div class="care-card" id="care">
-          <h3>Website Care Plan</h3>
-          <p>Monthly WordPress core, plugin and theme updates, plus monthly backups kept on your server and on a remote cloud server.</p>
-          <div class="calc" data-calc>
-            <span class="stepper" role="group" aria-label="Number of websites">
-              <button type="button" data-step="-1" aria-label="One fewer website"><svg class="icon" aria-hidden="true"><path d="M5 12h14"/></svg></button>
-              <output aria-live="polite">1</output>
-              <button type="button" data-step="1" aria-label="One more website"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg></button>
-            </span>
-            <span class="calc-total num" data-total aria-live="polite">$360 + GST</span>
+          <div class="care-card" id="care">
+            <h3>Website Care Plan</h3>
+            <p>Monthly WordPress core, plugin and theme updates, plus monthly backups kept on your server and on a remote cloud server.</p>
+            <div class="calc" data-calc>
+              <span class="stepper" role="group" aria-label="Number of websites">
+                <button type="button" data-step="-1" aria-label="One fewer website"><svg class="icon" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+                <output aria-live="polite">1</output>
+                <button type="button" data-step="1" aria-label="One more website"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg></button>
+              </span>
+              <span class="calc-total num" data-total aria-live="polite">$360 + GST</span>
+            </div>
           </div>
+      </div>
+      <div class="schedule-aside" aria-hidden="true">
+        <div class="class-show" data-class-show>
+          <span class="cs-num" data-cs-num>1</span>
+          <div class="cs-media" data-cs-media></div>
+          <p class="cs-cap" data-cs-cap>Website design &amp; development</p>
         </div>
       </div>
     </div>
@@ -140,7 +146,7 @@
         </div>
       </div>
       <div class="membership-art">
-        <div class="screen"><img src="../assets/hc/large/farm-writers-multi-devices.jpg" alt="The Farm Writers' Association of NSW membership website on desktop, laptop and tablet" width="1000" height="750" loading="lazy"></div>
+        <div class="screen float"><img src="../assets/hc/cut/farm-writers-multi-devices.webp" alt="The Farm Writers' Association of NSW membership website on desktop, laptop and tablet" width="1000" height="750" loading="lazy"></div>
         <img class="wa-badge" src="../assets/hc/wild-apricot-logo.png" alt="Wild Apricot partner" loading="lazy">
       </div>
     </div>
@@ -150,14 +156,16 @@
     <div class="wrap gallery-head">
       <div>
         <div class="section-title"><span class="sec-no" aria-hidden="true">3</span><h2 id="work-title">Entries in the pavilion</h2></div>
-        <p class="section-intro">Clubs, clinics, cattle breeders, law firms and a tapas restaurant. Drag through a few recent entries, or open one.</p>
+        <p class="section-intro">Clubs, clinics, cattle breeders, law firms and a tapas restaurant. Hover to pause, select any entry to open it.</p>
       </div>
       <a class="btn btn-manila" href="work.html">See all 28 entries<svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a>
     </div>
-    <ol class="entries strip" data-featured aria-label="Recent entries"></ol>
+    <div class="marquee" data-marquee="web" role="region" aria-label="Website and membership site entries"></div>
+    <div class="marquee reverse" data-marquee="brand" role="region" aria-label="Brand identity entries"></div>
   </section>
 
   <section class="section judges" data-station="drift" aria-labelledby="judges-title">
+    <div class="quote-field" data-quote-field aria-hidden="true"></div>
     <div class="wrap">
       <div class="judges-copy panel">
         <h2 id="judges-title" style="font-size:var(--fs-h2)">What the judges said</h2>
@@ -166,16 +174,6 @@
           <figure class="judge-quote" id="judge-panel" role="tabpanel"></figure>
         </div>
         <div class="judge-tabs" role="tablist" aria-label="Choose a client"></div>
-        <div class="clients">
-          <h3>Some of our valued clients</h3>
-          <ul class="logos">
-            <li><img src="../assets/hc/cjp.png" alt="Campbell Jones Property" loading="lazy"></li>
-            <li><img src="../assets/hc/greening-aust.png" alt="Greening Australia" loading="lazy"></li>
-            <li><img src="../assets/hc/darraby.png" alt="Darraby" loading="lazy"></li>
-            <li><img src="../assets/hc/WHV.png" alt="Client logo" loading="lazy"></li>
-            <li><img src="../assets/hc/bcac.png" alt="Client logo" loading="lazy"></li>
-          </ul>
-        </div>
       </div>
     </div>
   </section>

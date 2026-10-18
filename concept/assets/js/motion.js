@@ -169,6 +169,18 @@
   });
   window.addEventListener("pageshow", function () { $$(".zoomer").forEach(function (z) { z.remove(); }); });
 
+  /* ---------- the manifesto line lights up word by word as you scroll ---------- */
+  $$(".manifesto-pull blockquote").forEach(function (q) {
+    var words = q.textContent.trim().split(/\s+/);
+    q.innerHTML = words.map(function (w) { return '<span class="mw">' + w + "</span>"; }).join(" ");
+    var spans = $$(".mw", q);
+    var lightUp = function () {
+      var r = q.getBoundingClientRect(), p = clamp((innerHeight * .85 - r.top) / (r.height + innerHeight * .4), 0, 1), n = Math.round(p * spans.length);
+      spans.forEach(function (s, i) { s.classList.toggle("lit", reduce || i < n); });
+    };
+    addEventListener("scroll", lightUp, { passive: true }); lightUp();
+  });
+
   /* ---------- scroll progress thread along the page edge ---------- */
   var thread = document.querySelector(".thread i");
   if (thread) {

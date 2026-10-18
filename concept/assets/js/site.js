@@ -133,6 +133,34 @@
       if (animate) { quote.classList.remove("swap"); void quote.offsetWidth; quote.classList.add("swap"); }
     }
     showJudge(0, false);
+    var jIdx = 0, jPaused = false, jTimer = null, jWrap = stage.parentNode;
+    var tick = function () {
+      clearTimeout(jTimer);
+      $$("button", tabs).forEach(function (b) { b.classList.remove("tick"); });
+      var cur = $('button[aria-selected="true"]', tabs); if (!cur || reduceMotion) return;
+      void cur.offsetWidth; cur.classList.add("tick");
+      jTimer = setTimeout(function () { if (jPaused) return; jIdx = (HC.judges.indexOf(HC.judges.filter(function (j, k) { return $$("button", tabs)[k] === cur; })[0]) + 1) % HC.judges.length; showJudge(jIdx, true); tick(); }, 7000);
+    };
+    tabs.addEventListener("click", function () { setTimeout(tick, 0); });
+    jWrap.addEventListener("pointerenter", function () { jPaused = true; tabs.classList.add("paused"); });
+    jWrap.addEventListener("pointerleave", function () { jPaused = false; tabs.classList.remove("paused"); tick(); });
+    jWrap.addEventListener("focusin", function () { jPaused = true; tabs.classList.add("paused"); });
+    jWrap.addEventListener("focusout", function () { jPaused = false; tabs.classList.remove("paused"); });
+    tick();
+  }
+
+  /* Floating phrases from the clients' own words */
+  var field = $("[data-quote-field]");
+  if (field) {
+    var PH = ["nothing is a problem", "above and beyond", "the entire package", "fast loading", "a strong marketing tool", "an honest approach", "helped us sell product", "the personal touch", "compliments and leads every day", "always responsive", "a business friendship", "very reasonable"];
+    var spots = [[4, 12], [10, 70], [2, 42], [18, 88], [70, 8], [80, 34], [74, 62], [66, 88], [36, 4], [52, 94], [26, 30], [60, 22]];
+    field.innerHTML = PH.map(function (p, i) {
+      var depth = (i % 3), s = spots[i];
+      return '<span class="qf d' + depth + '" style="left:' + s[0] + "%;top:" + s[1] + "%;--qd:" + (i * -1.7).toFixed(1) + 's">“' + esc(p) + "”</span>";
+    }).join("");
+    window.addEventListener("pointermove", function (e) {
+      field.style.setProperty("--px", ((e.clientX / innerWidth) - .5).toFixed(3)); field.style.setProperty("--py", ((e.clientY / innerHeight) - .5).toFixed(3));
+    }, { passive: true });
   }
 
   /* Care plan calculator ($360 + GST per site per year: their published price) */
@@ -148,6 +176,47 @@
       b.addEventListener("click", function () { n = Math.max(1, Math.min(20, n + parseInt(b.dataset.step, 10))); render(); });
     });
     render();
+  }
+
+  /* Entries on the home page: two endless strips of cut-out work (websites one way, brands the other) */
+  $$("[data-marquee]").forEach(function (m) {
+    if (!HC.entries) return;
+    var brand = m.getAttribute("data-marquee") === "brand";
+    var items = HC.entries.filter(function (e) { return brand ? e.cls === "brand" : e.cls !== "brand"; });
+    var row = function (dup) {
+      return items.map(function (e) {
+        return '<a class="mq-item' + (brand ? " is-logo" : "") + (/^(bees-in-bowties|walton-earthmoving|wall-to-wollondilly)$/.test(e.slug) ? " badge" : "") + '" href="work.html#' + e.slug + '"' + (dup ? ' tabindex="-1" aria-hidden="true"' : "") + '><img src="' + IMG + HC.cut(e) + '" alt="' + (dup ? "" : esc(e.title)) + '" loading="lazy" draggable="false"><span>' + esc(e.title) + "</span></a>";
+      }).join("");
+    };
+    m.innerHTML = '<div class="mq-track">' + row(false) + row(true) + "</div>";
+  });
+
+  /* Classes: the sticky showcase follows the list */
+  var show = $("[data-class-show]");
+  if (show && "IntersectionObserver" in window) {
+    var CS = [
+      { img: "cut/inconsult-multi-devices.webp", cap: "Website design & development" },
+      { img: "cut/farm-writers-multi-devices.webp", cap: "Wild Apricot membership sites" },
+      { img: "cut/beesinbowties-1.webp", cap: "Print & advertisement design", logo: true },
+      { img: "cut/highlands-design-co.webp", cap: "Branding & identity", logo: true },
+      { img: "cut/mmc-multi-devices.webp", cap: "SEO & web marketing" },
+      { quote: "Words that do their job.", cap: "Copywriting" },
+      { img: "cut/shahgps-multi-devices.webp", cap: "Website Care Plan · $360 + GST a year" }
+    ];
+    var media = $("[data-cs-media]", show), num = $("[data-cs-num]", show), capEl = $("[data-cs-cap]", show), csCur = -1;
+    media.innerHTML = CS.map(function (c, i) {
+      return c.quote ? '<p class="cs-quote" data-i="' + i + '">' + esc(c.quote) + "</p>" : '<img src="' + IMG + c.img + '" alt="" data-i="' + i + '"' + (c.logo ? ' class="cs-logo"' : "") + ">";
+    }).join("");
+    var setClass = function (i) {
+      if (i === csCur) return; csCur = i;
+      $$("[data-i]", media).forEach(function (el) { el.classList.toggle("on", +el.getAttribute("data-i") === i); });
+      num.classList.remove("flip"); void num.offsetWidth; num.textContent = i + 1; num.classList.add("flip");
+      capEl.textContent = CS[i].cap;
+    };
+    var rows = $$(".schedule .class-list > li");
+    var cio = new IntersectionObserver(function (es) { es.forEach(function (en) { if (en.isIntersecting) setClass(rows.indexOf(en.target)); }); }, { rootMargin: "-45% 0px -45% 0px" });
+    rows.forEach(function (r, i) { cio.observe(r); r.addEventListener("pointerenter", function () { setClass(i); }); });
+    setClass(0);
   }
 
   /* Pavilion on the home page: first entries */
@@ -172,7 +241,7 @@
     grid.innerHTML = list.map(function (e, i) {
       var c = HC.classes[e.cls];
       return '<li class="entry-card" data-cls="' + e.cls + '" data-i="' + i + '"><span class="mini-tag" aria-hidden="true">No. ' + String(i + 1).padStart(3, "0") + "</span>" +
-        '<button type="button" aria-haspopup="dialog"><div class="shot"><img src="' + IMG + e.img + '" alt=""' + (e.contain ? ' class="contain"' : "") + ' loading="lazy" width="1000" height="750"></div>' +
+        '<button type="button" aria-haspopup="dialog"><div class="shot"><img src="' + IMG + (HC.cut ? HC.cut(e) : e.img) + '" alt=""' + (e.contain ? ' class="contain cut-logo"' : ' class="cut"') + ' loading="lazy"></div>' +
         "<h3>" + esc(e.title) + '</h3><p class="meta">Class ' + c.no + " · " + esc(c.label) + "</p></button></li>";
     }).join("");
     var counts = { all: list.length };
