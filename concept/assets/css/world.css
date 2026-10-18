@@ -343,9 +343,11 @@ html.world-loaded .loader, html.no-webgl .loader { opacity: 0; visibility: hidde
 .loader i::after { content: ""; position: absolute; inset: 0; background: var(--manila); transform-origin: left; transform: scaleX(0); animation: load 2.6s cubic-bezier(.2,.7,.2,1) forwards; }
 @keyframes load { to { transform: scaleX(.92); } }
 
-/* scroll snapping between sections (proximity, so free scrolling still feels natural) */
-html { scroll-snap-type: y proximity; }
-main > section, main > .wrap, main > div, .gate, .pitch-end { scroll-snap-align: start; }
+/* scroll snapping: every section is a stop, so a quick flick can't skip one. Sections taller
+   than the window (the seasons hero, the class list) still scroll freely inside. */
+html { scroll-snap-type: y mandatory; }
+main > section, main > .wrap, main > div, .gate, .pitch-end { scroll-snap-align: start; scroll-snap-stop: always; }
+.gate, .pitch-end { scroll-snap-align: end; }
 
 /* gallery strip */
 .gallery-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1.5rem 3rem; }
@@ -378,7 +380,8 @@ html:not(.webgl) .strip { padding-bottom: 2rem; }
 .logos { list-style: none; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 2rem 3.25rem; margin-top: 1.6rem; }
 .logos img { height: 46px; width: auto; max-width: 150px; object-fit: contain; }
 .webgl .logos img { filter: brightness(0) invert(1); opacity: .85; }
-main > section.hero, main > .pitch-hero { scroll-snap-align: none; }
+/* the first section snaps to the very top of the page, concept bar and header included */
+main > :first-child { scroll-margin-top: 100vh; }
 .hero-copy h1 { font-size: min(clamp(2.8rem, 1.5rem + 4.1vw, 5.4rem), 9vh); }
 .hero-copy .lede { margin-top: min(1.4rem, 2vh); }
 .hero-copy .cover-actions { margin-top: min(2rem, 3vh); }
