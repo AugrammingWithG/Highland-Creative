@@ -16,7 +16,10 @@
 </script>
 </head>
 <body data-world="home">
+<script>document.documentElement.classList.add("loading");</script>
 <canvas id="world" data-base="../assets/hc/" aria-hidden="true"></canvas>
+<div class="veil" aria-hidden="true"></div>
+<div class="loader" aria-hidden="true"><div class="loader-in"><img src="../assets/hc/HCreative_Logo_H_369.png" alt="" width="369" height="50"><span>Dusk on the hill · Southern Highlands</span><i></i></div></div>
 <div class="curtain" aria-hidden="true"><span>Highland Creative</span></div>
 <div id="world-tip" aria-hidden="true"></div>
 <div class="thread" aria-hidden="true"><i></i></div>
@@ -91,7 +94,7 @@
     <div class="wrap">
       <div class="panel">
         <div class="section-title"><span class="sec-no" aria-hidden="true">1</span><h2 id="classes-title">Classes for <span data-year>2026</span></h2></div>
-        <p class="section-intro">Seven classes, each judged on one thing: design that works for your business. Their ribbons are flying in the field.</p>
+        <p class="section-intro">Seven classes, each judged on one thing: design that works for your business.</p>
         <ol class="class-list">
           <li><span class="class-no" aria-hidden="true">1</span><div class="class-line"><h3><a href="services.html#web">Website design &amp; development</a></h3><span class="leader" aria-hidden="true"></span><span class="fee">By quote</span></div><p>Custom, mobile-responsive websites, eCommerce, WordPress and content management, built to tie in with your existing branding.</p></li>
           <li><span class="class-no" aria-hidden="true">2</span><div class="class-line"><h3><a href="wild-apricot.html">Wild Apricot membership sites</a></h3><span class="leader" aria-hidden="true"></span><span class="fee">Free site review</span></div><p>Design, account setup, training and ongoing support for clubs, associations and charities.</p></li>
@@ -143,40 +146,36 @@
     </div>
   </section>
 
-  <section class="section pavilion" data-station="pavilion" data-side="right" data-scrim="left" aria-labelledby="work-title">
-    <div class="wrap">
-      <div class="panel olive">
+  <section class="section gallery" id="work" data-station="drift" aria-labelledby="work-title">
+    <div class="wrap gallery-head">
+      <div>
         <div class="section-title"><span class="sec-no" aria-hidden="true">3</span><h2 id="work-title">Entries in the pavilion</h2></div>
-        <p class="section-intro">Clubs, clinics, cattle breeders, law firms and a tapas restaurant. Their work hangs in the pavilion.</p>
-        <p class="world-hint"><svg aria-hidden="true"><use href="#i-drag"/></svg>Drag to spin the pavilion · select an entry</p>
-        <div class="cover-actions"><a class="btn btn-manila" href="work.html">See all 28 entries<svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a></div>
+        <p class="section-intro">Clubs, clinics, cattle breeders, law firms and a tapas restaurant. Drag through a few recent entries, or open one.</p>
       </div>
-      <ol class="entries" data-featured style="list-style:none"></ol>
+      <a class="btn btn-manila" href="work.html">See all 28 entries<svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a>
     </div>
+    <ol class="entries strip" data-featured aria-label="Recent entries"></ol>
   </section>
 
-  <section class="section judges" data-station="rosette" data-side="left" data-scrim="right" aria-labelledby="judges-title">
+  <section class="section judges" data-station="drift" aria-labelledby="judges-title">
     <div class="wrap">
-      <div class="rosette-col">
-        <svg class="rosette" viewBox="0 0 200 270" role="img" aria-label="Highly commended rosette">
-          <path d="M80 118 58 262l17-14 12 20 13-142Z" fill="#561642"/>
-          <path d="M120 118l22 144-17-14-12 20-13-142Z" fill="#7a215c"/>
-          <circle cx="100" cy="96" r="88" fill="#7a215c"/>
-          <circle cx="100" cy="96" r="80" fill="none" stroke="#561642" stroke-width="16" stroke-dasharray="3 3.3"/>
-          <circle cx="100" cy="96" r="64" fill="#e3c27c"/>
-          <circle cx="100" cy="96" r="60" fill="none" stroke="#b98f3e" stroke-width="7" stroke-dasharray="2 2.4"/>
-          <circle cx="100" cy="96" r="49" fill="#fbfcf7"/>
-          <text x="100" y="90" text-anchor="middle" font-family="Sofia Sans Extra Condensed, Arial Narrow, sans-serif" font-weight="800" font-size="19" letter-spacing="1.5" fill="#561642">HIGHLY</text>
-          <text x="100" y="110" text-anchor="middle" font-family="Sofia Sans Extra Condensed, Arial Narrow, sans-serif" font-weight="800" font-size="15" letter-spacing="1.2" fill="#561642">COMMENDED</text>
-        </svg>
-      </div>
       <div class="judges-copy panel">
         <h2 id="judges-title" style="font-size:var(--fs-h2)">What the judges said</h2>
-        <p class="section-intro">The only judges we answer to are our clients. These are their words. <span class="world-hint" style="margin:0">Touch the rosette to spin it.</span></p>
+        <p class="section-intro">The only judges we answer to are our clients. These are their words.</p>
         <div class="judge-stage" data-judges>
           <figure class="judge-quote" id="judge-panel" role="tabpanel"></figure>
         </div>
         <div class="judge-tabs" role="tablist" aria-label="Choose a client"></div>
+        <div class="clients">
+          <h3>Some of our valued clients</h3>
+          <ul class="logos">
+            <li><img src="../assets/hc/cjp.png" alt="Campbell Jones Property" loading="lazy"></li>
+            <li><img src="../assets/hc/greening-aust.png" alt="Greening Australia" loading="lazy"></li>
+            <li><img src="../assets/hc/darraby.png" alt="Darraby" loading="lazy"></li>
+            <li><img src="../assets/hc/WHV.png" alt="Client logo" loading="lazy"></li>
+            <li><img src="../assets/hc/bcac.png" alt="Client logo" loading="lazy"></li>
+          </ul>
+        </div>
       </div>
     </div>
   </section>

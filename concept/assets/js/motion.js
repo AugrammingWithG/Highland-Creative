@@ -65,12 +65,17 @@
   var groups = [".class-list > li", ".conditions > li", ".prop-list > li", ".team > *", ".ticks > li", ".gap-list > li", ".try-list > li", ".wins-grid > li", ".feature-table tbody tr", ".qa details", ".rules li", ".contents li", ".judge-tabs", ".entries > li"];
   groups.forEach(function (sel) { $$(sel).forEach(function (el, k) { el.classList.add("rv"); el.style.setProperty("--d", Math.min(k, 8)); }); });
   $$(".panel, .care-card, .details-card, .svc, .judge-stage, .sheet, .rules, .compare-grid > *, .membership-art, .story > *, .filters, .manifesto-pull, .cover-copy").forEach(function (el) { el.classList.add("rv", "rv-card"); });
-  if ("IntersectionObserver" in window && !reduce) {
+  function whenLoaded(fn) {
+    if (!doc.classList.contains("loading") || doc.classList.contains("world-loaded")) { fn(); return; }
+    var mo = new MutationObserver(function () { if (doc.classList.contains("world-loaded")) { mo.disconnect(); setTimeout(fn, 250); } });
+    mo.observe(doc, { attributes: true, attributeFilter: ["class"] });
+  }
+  if ("IntersectionObserver" in window && !reduce) whenLoaded(function () {
     var io = new IntersectionObserver(function (es) {
       es.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add("in"); io.unobserve(en.target); } });
     }, { rootMargin: "0px 0px -8% 0px", threshold: .08 });
     $$(".rv, .rv-h").forEach(function (el) { io.observe(el); });
-  } else { $$(".rv, .rv-h").forEach(function (el) { el.classList.add("in"); }); }
+  }); else { $$(".rv, .rv-h").forEach(function (el) { el.classList.add("in"); }); }
 
   /* ---------- tilt: cards lean toward the pointer, with a moving glare ---------- */
   var tilts = $$("[data-tilt], .entry-card, .member, .win .tag, .details-card, .care-card, .membership-art .screen, .shot-frame .browser, .sheet");
@@ -141,6 +146,28 @@
       b.addEventListener("pointerleave", function () { b.style.setProperty("--mx", "0px"); b.style.setProperty("--my", "0px"); });
     });
   }
+
+  /* ---------- gallery strip: drag to scroll; opening an entry zooms its image to full screen ---------- */
+  $$(".strip").forEach(function (st) {
+    var down = false, sx = 0, sl = 0, moved = 0;
+    st.addEventListener("pointerdown", function (e) { if (e.pointerType !== "mouse") return; down = true; sx = e.clientX; sl = st.scrollLeft; moved = 0; });
+    window.addEventListener("pointermove", function (e) { if (!down) return; var dx = e.clientX - sx; moved = Math.max(moved, Math.abs(dx)); if (moved > 4) st.classList.add("dragging"); st.scrollLeft = sl - dx; });
+    window.addEventListener("pointerup", function () { if (!down) return; down = false; setTimeout(function () { st.classList.remove("dragging"); }, 0); });
+    st.addEventListener("click", function (e) {
+      if (moved > 6) { e.preventDefault(); e.stopPropagation(); moved = 0; return; }
+      var a = e.target.closest && e.target.closest(".entry-card a"); if (!a || reduce) return;
+      var img = a.querySelector("img"); if (!img) return;
+      e.preventDefault(); e.stopPropagation();
+      var r = img.getBoundingClientRect(), z = img.cloneNode();
+      z.className = "zoomer" + (img.classList.contains("contain") ? " contain" : ""); z.removeAttribute("loading");
+      z.style.left = r.left + "px"; z.style.top = r.top + "px"; z.style.width = r.width + "px"; z.style.height = r.height + "px";
+      document.body.appendChild(z);
+      requestAnimationFrame(function () { requestAnimationFrame(function () { z.classList.add("go"); }); });
+      setTimeout(function () { location.href = a.href; }, 700);
+    }, true);
+    st.addEventListener("keydown", function (e) { if (e.key === "ArrowRight") st.scrollBy({ left: st.clientWidth * .6, behavior: "smooth" }); if (e.key === "ArrowLeft") st.scrollBy({ left: -st.clientWidth * .6, behavior: "smooth" }); });
+  });
+  window.addEventListener("pageshow", function () { $$(".zoomer").forEach(function (z) { z.remove(); }); });
 
   /* ---------- scroll progress thread along the page edge ---------- */
   var thread = document.querySelector(".thread i");

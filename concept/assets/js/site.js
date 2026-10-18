@@ -153,7 +153,7 @@
   /* Pavilion on the home page: first entries */
   var featured = $("[data-featured]");
   if (featured && HC.entries) {
-    var picks = ["parramatta-district-regional-law-society", "farm-writers-association-of-nsw", "knox-farms", "botanical-art-society-logo", "jnw-strategic-consulting", "red-olive-restaurant"];
+    var picks = ["parramatta-district-regional-law-society", "farm-writers-association-of-nsw", "knox-farms", "botanical-art-society-logo", "jnw-strategic-consulting", "mittagong-medical-centre", "red-olive-restaurant", "maserati-club-of-australia"];
     featured.innerHTML = picks.map(function (slug, i) {
       var e = HC.entries.filter(function (x) { return x.slug === slug; })[0];
       if (!e) return "";

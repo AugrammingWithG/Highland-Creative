@@ -1,8 +1,8 @@
-/* Highland Creative concept: the living 3D world behind every page (realistic renderer).
-   One persistent WebGL scene of the Southern Highlands: a real deciduous tree on the hill that turns
-   through the seasons, pasture grass in the wind, the class ribbon field, a show marquee of real entries,
-   the judges' rosette, a weatherboard studio and the hill at dusk. Scroll flies the camera between
-   stations; drag, hover and pointer gusts make it touchable. */
+/* Highland Creative concept: one cinematic 3D scene behind every page.
+   The tree on the hill at dusk, lit by a real sunset sky photograph (Poly Haven, CC0), with scanned
+   grass and bark, wind-blown pasture, a weatherboard studio and fireflies. A custom post pass adds
+   bloom, edge depth-of-field, film grain and a vignette. The home hero is sharp and turns through the
+   seasons on scroll; everywhere else the same scene drifts slowly, softly blurred, behind the words. */
 (function () {
   "use strict";
   var T = window.THREE;
@@ -10,7 +10,7 @@
   var canvas = document.getElementById("world");
 
   function noGL() {
-    doc.classList.add("no-webgl");
+    doc.classList.add("no-webgl", "world-loaded");
     var names = ["spring", "summer", "autumn", "winter"], m = new Date().getMonth();
     var cur = m >= 8 && m <= 10 ? 0 : (m === 11 || m <= 1) ? 1 : (m >= 2 && m <= 4) ? 2 : 3;
     function set(n) {
@@ -28,23 +28,22 @@
   var mobile = matchMedia("(max-width: 760px), (pointer: coarse)").matches;
   var renderer;
   try {
-    renderer = new T.WebGLRenderer({ canvas: canvas, antialias: !mobile, powerPreference: "high-performance" });
+    renderer = new T.WebGLRenderer({ canvas: canvas, antialias: false, powerPreference: "high-performance" });
     if (!renderer.getContext()) throw new Error("no gl");
   } catch (e) { noGL(); return; }
   doc.classList.add("webgl");
-
   if (T.ColorManagement) T.ColorManagement.legacyMode = false;
-  renderer.outputEncoding = T.sRGBEncoding;
-  renderer.toneMapping = T.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1;
+  renderer.outputEncoding = T.LinearEncoding;      // the post pass does tone mapping and gamma itself
+  renderer.toneMapping = T.NoToneMapping;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = T.PCFShadowMap;
+  var isGL2 = renderer.capabilities.isWebGL2;
 
-  var BASE = canvas.getAttribute("data-base") || "../assets/hc/";
+  var ASSETS = (canvas.getAttribute("data-base") || "../assets/hc/").replace(/assets\/hc\/$/, "") + "concept/assets/world/";
+  if ((canvas.getAttribute("data-base") || "").indexOf("../") === 0) ASSETS = "assets/world/";
   var PAGE = document.body.getAttribute("data-world") || "home";
-  var HC = window.HC || {};
   var DPR = Math.min(window.devicePixelRatio || 1, mobile ? 1 : 1.25);
-  renderer.setPixelRatio(DPR);
+  var renderScale = 1;
   var maxAniso = renderer.capabilities.getMaxAnisotropy ? Math.min(8, renderer.capabilities.getMaxAnisotropy()) : 4;
 
   /* ---------- helpers ---------- */
@@ -53,7 +52,6 @@
   function pick(a) { return a[Math.floor(rand() * a.length)]; }
   function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
   function lerp(a, b, t) { return a + (b - a) * t; }
-  function ease(t) { return t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
   function smooth(a, b, x) { var t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); }
   function col(h) { return new T.Color(h); }
   function V(x, y, z) { return new T.Vector3(x, y, z); }
@@ -67,100 +65,87 @@
     return lerp(lerp(a, b, u), lerp(c, d, u), v);
   }
   function fbm(x, y, o) { var s = 0, a = .5; for (var i = 0; i < (o || 4); i++) { s += a * vn(x, y); x *= 2.03; y *= 2.03; a *= .5; } return s; }
-  function canvasTex(w, h, draw, repeat) {
+  function canvasTex(w, h, draw) {
     var c = document.createElement("canvas"); c.width = w; c.height = h; draw(c.getContext("2d"), w, h);
-    var t = new T.CanvasTexture(c); t.encoding = T.sRGBEncoding; t.anisotropy = maxAniso;
+    var t = new T.CanvasTexture(c); t.encoding = T.sRGBEncoding; t.anisotropy = maxAniso; return t;
+  }
+
+  /* ---------- loading: the page reveals once the sky has arrived and two frames have drawn ---------- */
+  var pending = 0, framesDrawn = 0, revealed = false;
+  function reveal() { if (revealed) return; revealed = true; doc.classList.add("world-loaded"); }
+  setTimeout(reveal, 7000);
+  var loader = new T.TextureLoader();
+  function loadTex(url, srgb, repeat, done) {
+    pending++;
+    return loader.load(ASSETS + url, function (t) { if (done) done(t); pending--; }, undefined, function () { pending--; });
+  }
+  function prepTex(t, srgb, repeat) {
+    if (srgb) t.encoding = T.sRGBEncoding; t.anisotropy = maxAniso;
     if (repeat) { t.wrapS = t.wrapT = T.RepeatWrapping; t.repeat.set(repeat[0], repeat[1]); }
-    return t;
-  }
-  function speckle(g, w, h, base, spread, n) {
-    g.fillStyle = base; g.fillRect(0, 0, w, h);
-    for (var i = 0; i < n; i++) { g.fillStyle = spread[Math.floor(rand() * spread.length)]; g.globalAlpha = .08 + rand() * .25; var s = 1 + rand() * 3; g.fillRect(rand() * w, rand() * h, s, s * (1 + rand() * 3)); }
-    g.globalAlpha = 1;
+    t.needsUpdate = true; return t;
   }
 
-  /* ---------- scene ---------- */
+  /* ---------- scene and the real sky ---------- */
   var scene = new T.Scene();
-  var camera = new T.PerspectiveCamera(40, 1, 0.1, 1600);
+  var camera = new T.PerspectiveCamera(38, 1, 0.1, 2000);
   var clock = new T.Clock();
+  // the photo's sun sits at u ≈ .62 on the horizon; aim every framing at it so the tree is backlit
+  var SUN_AZ = (0.62 - 0.5) * Math.PI * 2;
+  var sunDir = V(Math.cos(SUN_AZ), .2, Math.sin(SUN_AZ)).normalize();
+  var VIEW_AZ = SUN_AZ - 0.32;                      // look slightly left of the sun so it glows beside the tree
+  function rot(v) { // local frame: camera looks down -z; rotate so -z faces VIEW_AZ
+    var a = VIEW_AZ + Math.PI / 2, c = Math.cos(a), s = Math.sin(a);
+    return V(v.x * c - v.z * s, v.y, v.x * s + v.z * c);
+  }
+  var pmrem = new T.PMREMGenerator(renderer);
+  loadTex(mobile ? "sky-dusk-2k.jpg" : "sky-dusk-4k.jpg", true, null, function (t) {
+    prepTex(t, true); t.mapping = T.EquirectangularReflectionMapping;
+    scene.background = t;
+    scene.environment = pmrem.fromEquirectangular(t).texture;
+  });
+  scene.background = col("#6f5a72");
+  scene.fog = new T.FogExp2(0x9c7f86, mobile ? .0075 : .0068);
 
-  /* ---------- terrain ---------- */
-  var PAV = V(-78, 0, -34), RIB = V(72, 0, -18), ROS = V(34, 0, 52);
+  var hemi = new T.HemisphereLight(0xb9a6c9, 0x2a2320, .55);
+  var sun = new T.DirectionalLight(0xffb27a, 1.7);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(mobile ? 512 : 1024, mobile ? 512 : 1024);
+  var shc = sun.shadow.camera; shc.left = -34; shc.right = 34; shc.top = 34; shc.bottom = -34; shc.near = 1; shc.far = 240;
+  sun.shadow.bias = -.0008; sun.shadow.normalBias = .05;
+  scene.add(hemi, sun, sun.target);
+
+  /* ---------- terrain with scanned grass ---------- */
   function baseH(x, z) {
     var knoll = 9.5 * Math.exp(-(x * x + z * z) / 560);
     var roll = 2.4 * Math.sin(x * 0.045 + 1.3) * Math.cos(z * 0.05) + 1.4 * Math.sin(x * 0.09 + z * 0.06 + 2.0) + 0.6 * Math.sin(x * 0.21 - z * 0.17);
-    var far = Math.max(0, -z - 80) * 0.2 * (1 + 0.6 * Math.sin(x * 0.03 + 0.7));
-    return knoll + roll + far - 2 + (fbm(x * .03 + 7, z * .03 + 3, 3) - .5) * 2.2;
+    return knoll + roll - 2 + (fbm(x * .03 + 7, z * .03 + 3, 3) - .5) * 2.2;
   }
-  var plateaus = [[PAV, 16], [RIB, 18]].map(function (p) { return { c: p[0], r: p[1], h: baseH(p[0].x, p[0].z) }; });
-  function hgt(x, z) {
-    var h = baseH(x, z);
-    for (var i = 0; i < plateaus.length; i++) { var p = plateaus[i], dx = x - p.c.x, dz = z - p.c.z, w = Math.exp(-(dx * dx + dz * dz) / (p.r * p.r)); h = h * (1 - w) + p.h * w; }
-    return h;
-  }
-  PAV.y = hgt(PAV.x, PAV.z); RIB.y = hgt(RIB.x, RIB.z); ROS.y = hgt(ROS.x, ROS.z);
-
-  var tSeg = mobile ? 90 : 150;
-  var terrainGeo = new T.PlaneGeometry(900, 900, tSeg, tSeg); terrainGeo.rotateX(-Math.PI / 2);
-  var tp = terrainGeo.attributes.position, tc = new Float32Array(tp.count * 3);
-  var gDark = col("#2f4519"), gMid = col("#4f6a26"), gLight = col("#6f8433"), gDry = col("#8e8a45"), cTmp = new T.Color();
+  function hgt(x, z) { return baseH(x, z); }
+  var tSeg = mobile ? 90 : 140;
+  var terrainGeo = new T.PlaneGeometry(1000, 1000, tSeg, tSeg); terrainGeo.rotateX(-Math.PI / 2);
+  var tp = terrainGeo.attributes.position, tc = new Float32Array(tp.count * 3), cTmp = new T.Color();
+  var gDark = col("#4a5a35"), gMid = col("#6e7a4a"), gDry = col("#8d8458");
   for (var i = 0; i < tp.count; i++) {
-    var x = tp.getX(i), z = tp.getZ(i), h = hgt(x, z); tp.setY(i, h);
-    var n1 = fbm(x * .02, z * .02, 4), n2 = fbm(x * .11 + 30, z * .11, 3), k = clamp((h + 3) / 16, 0, 1);
-    cTmp.copy(gDark).lerp(gMid, smooth(.15, .6, k * .6 + n1 * .5)).lerp(gLight, smooth(.55, .85, n2) * .6).lerp(gDry, smooth(.62, .8, n1) * .55);
+    var x = tp.getX(i), z = tp.getZ(i); tp.setY(i, hgt(x, z));
+    var n1 = fbm(x * .02, z * .02, 4);
+    cTmp.copy(gDark).lerp(gMid, smooth(.3, .7, n1)).lerp(gDry, smooth(.62, .82, n1) * .5);
     tc[i * 3] = cTmp.r; tc[i * 3 + 1] = cTmp.g; tc[i * 3 + 2] = cTmp.b;
   }
   terrainGeo.setAttribute("color", new T.BufferAttribute(tc, 3));
   terrainGeo.computeVertexNormals();
-  var grassTex = canvasTex(512, 512, function (g, w, h) { speckle(g, w, h, "#9aa070", ["#5d6b35", "#c1c08a", "#7c8a45", "#4a5a2a", "#b3a865"], 9000); }, [140, 140]);
-  var terrainMat = new T.MeshLambertMaterial({ vertexColors: true, map: grassTex });
+  var terrainMat = new T.MeshStandardMaterial({ vertexColors: true, roughness: 1, metalness: 0, envMapIntensity: .55 });
+  loadTex("grass_diff.jpg", true, null, function (t) { terrainMat.map = prepTex(t, true, [90, 90]); terrainMat.needsUpdate = true; });
+  if (!mobile) loadTex("grass_nor.jpg", false, null, function (t) { terrainMat.normalMap = prepTex(t, false, [90, 90]); terrainMat.normalScale.set(.8, .8); terrainMat.needsUpdate = true; });
   var terrain = new T.Mesh(terrainGeo, terrainMat); terrain.receiveShadow = true; scene.add(terrain);
-
-  /* ---------- sky: atmospheric gradient, sun, procedural cumulus ---------- */
-  var sunDir = V(.45, .55, .35).normalize();
-  var skyU = { uSun: { value: sunDir }, uDusk: { value: 0 }, uTime: { value: 0 }, uWinter: { value: 0 } };
-  var sky = new T.Mesh(new T.SphereGeometry(1200, 48, 24), new T.ShaderMaterial({
-    side: T.BackSide, depthWrite: false, toneMapped: false, fog: false, uniforms: skyU,
-    vertexShader: "varying vec3 vD; void main(){ vD = position; vec4 p = projectionMatrix*modelViewMatrix*vec4(position,1.); gl_Position = p.xyww; }",
-    fragmentShader: [
-      "uniform vec3 uSun; uniform float uDusk,uTime,uWinter; varying vec3 vD;",
-      "float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}",
-      "float n(vec2 p){vec2 i=floor(p),f=fract(p);vec2 u=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),u.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),u.x),u.y);}",
-      "float fb(vec2 p){float v=0.,a=.5;for(int i=0;i<4;i++){v+=a*n(p);p=p*2.03+vec2(1.7,9.2);a*=.5;}return v;}",
-      "void main(){ vec3 d=normalize(vD); float y=d.y; float sd=max(dot(d,normalize(uSun)),0.);",
-      " vec3 zen=mix(mix(vec3(.16,.36,.7),vec3(.42,.52,.62),uWinter*.6),vec3(.05,.04,.12),uDusk);",
-      " vec3 hor=mix(mix(vec3(.74,.84,.93),vec3(.83,.86,.88),uWinter*.6),vec3(.96,.56,.36),uDusk);",
-      " vec3 c=mix(hor,zen,pow(clamp(y,0.,1.),.42));",
-      " c+=mix(vec3(1.,.88,.7),vec3(1.,.55,.3),uDusk)*(pow(sd,6.)*.28+pow(sd,60.)*.35)+vec3(1.,.97,.9)*smoothstep(.9994,.9998,sd)*2.;",
-      " if(y>0.){ vec2 uv=d.xz/(y+.08)*.9+vec2(uTime*.004,uTime*.0015);",
-      "  float cl=fb(uv*1.6); float cov=mix(.5,.42,uWinter); float m=smoothstep(cov,cov+.26,cl)*smoothstep(0.,.18,y);",
-      "  float shade=cl+(n(uv*5.)-.5)*.12; vec3 lit=mix(vec3(1.,.99,.97),vec3(1.,.72,.55),uDusk); vec3 sh=mix(vec3(.62,.67,.75),vec3(.38,.22,.3),uDusk);",
-      "  vec3 cc=mix(lit,sh,smoothstep(.45,.85,shade))*(1.+pow(sd,4.)*.35);",
-      "  c=mix(c,cc,m*.94); }",
-      " else { c=mix(hor*.92,hor*.7,clamp(-y*6.,0.,1.)); }",
-      " gl_FragColor=vec4(c,1.); }"].join("\n")
-  }));
-  sky.renderOrder = -1; scene.add(sky);
-  scene.fog = new T.FogExp2(0xbfd2e2, mobile ? .0062 : .0056);
-
-  var hemi = new T.HemisphereLight(0xcfe3f5, 0x3b4a22, .55);
-  var sun = new T.DirectionalLight(0xfff1dc, 2.1);
-  sun.castShadow = true;
-  sun.shadow.mapSize.set(mobile ? 512 : 1024, mobile ? 512 : 1024);
-  var shc = sun.shadow.camera; shc.left = -38; shc.right = 38; shc.top = 38; shc.bottom = -38; shc.near = 1; shc.far = 260;
-  sun.shadow.bias = -.0006; sun.shadow.normalBias = .04;
-  scene.add(hemi, sun, sun.target);
 
   /* ---------- geometry helpers ---------- */
   function taperTube(curve, r0, r1, seg, rad) {
-    var fr = curve.computeFrenetFrames(seg, false), len = curve.getLength();
-    var pos = [], nor = [], uv = [], idx = [];
+    var fr = curve.computeFrenetFrames(seg, false), len = curve.getLength(), pos = [], nor = [], uv = [], idx = [];
     for (var i = 0; i <= seg; i++) {
       var t = i / seg, p = curve.getPointAt(t), r = lerp(r0, r1, Math.pow(t, .85)), N = fr.normals[i], B = fr.binormals[i];
       for (var j = 0; j <= rad; j++) {
-        var v = j / rad * Math.PI * 2, s = Math.sin(v), c = -Math.cos(v);
-        var nx = c * N.x + s * B.x, ny = c * N.y + s * B.y, nz = c * N.z + s * B.z;
-        nor.push(nx, ny, nz); pos.push(p.x + r * nx, p.y + r * ny, p.z + r * nz); uv.push(j / rad * Math.max(1, r * 6), t * len * .5);
+        var v = j / rad * Math.PI * 2, s = Math.sin(v), c = -Math.cos(v), nx = c * N.x + s * B.x, ny = c * N.y + s * B.y, nz = c * N.z + s * B.z;
+        nor.push(nx, ny, nz); pos.push(p.x + r * nx, p.y + r * ny, p.z + r * nz); uv.push(j / rad * Math.max(1, r * 4), t * len * .35);
       }
     }
     for (i = 0; i < seg; i++) for (j = 0; j < rad; j++) { var a = i * (rad + 1) + j, b = (i + 1) * (rad + 1) + j; idx.push(a, b, a + 1, b, b + 1, a + 1); }
@@ -173,35 +158,26 @@
     geos.forEach(function (g) {
       var p = g.attributes.position.array, n = g.attributes.normal.array, u = g.attributes.uv.array, ix = g.index.array;
       for (var i = 0; i < p.length; i++) { pos.push(p[i]); nor.push(n[i]); }
-      for (i = 0; i < u.length; i++) uv.push(u[i]);
-      for (i = 0; i < ix.length; i++) idx.push(ix[i] + off);
+      for (i = 0; i < u.length; i++) uv.push(u[i]); for (i = 0; i < ix.length; i++) idx.push(ix[i] + off);
       off += p.length / 3;
     });
     var g = new T.BufferGeometry();
     g.setAttribute("position", new T.Float32BufferAttribute(pos, 3)); g.setAttribute("normal", new T.Float32BufferAttribute(nor, 3)); g.setAttribute("uv", new T.Float32BufferAttribute(uv, 2)); g.setIndex(idx);
     return g;
   }
-
-  /* ---------- shared uniforms ---------- */
   var U = { uTime: { value: 0 }, uWind: { value: new T.Vector2() }, uSeason: { value: 0 }, uDrop: { value: 0 }, uFrost: { value: 0 } };
   var m4 = new T.Matrix4(), q4 = new T.Quaternion(), e3 = new T.Euler(), s3 = V(1, 1, 1), p3 = V(0, 0, 0);
 
-  /* ---------- the tree: tapered trunk, branches, twigs, thousands of leaves ---------- */
+  /* ---------- the tree: scanned bark, branching limbs, seasonal leaves ---------- */
   var TREE = V(0, hgt(0, 0) - .4, 0);
   var tree = new T.Group(); tree.position.copy(TREE); scene.add(tree);
-  var barkTex = canvasTex(256, 512, function (g, w, h) {
-    g.fillStyle = "#5b5047"; g.fillRect(0, 0, w, h);
-    for (var i = 0; i < 900; i++) { var x = rand() * w; g.strokeStyle = pick(["#3a322c", "#7a6d60", "#4a4038", "#8c8173", "#2e2722"]); g.globalAlpha = .15 + rand() * .35; g.lineWidth = .6 + rand() * 2.4; g.beginPath(); g.moveTo(x, rand() * h); g.lineTo(x + (rand() - .5) * 6, rand() * h); g.stroke(); }
-    g.globalAlpha = 1;
-  }, [1, 1]);
-  var barkMat = new T.MeshStandardMaterial({ map: barkTex, bumpMap: barkTex, bumpScale: .06, roughness: .95, color: 0xb8aa9c });
+  var barkMat = new T.MeshStandardMaterial({ color: 0xffffff, roughness: .95, envMapIntensity: .4 });
+  loadTex("bark_diff.jpg", true, null, function (t) { barkMat.map = prepTex(t, true, [1, 1]); barkMat.needsUpdate = true; });
+  if (!mobile) loadTex("bark_nor.jpg", false, null, function (t) { barkMat.normalMap = prepTex(t, false, [1, 1]); barkMat.needsUpdate = true; });
   var limbs = [], twigPts = [];
   function branch(start, dir, len, r0, depth) {
     var pts = [start.clone()], p = start.clone(), d = dir.clone();
-    for (var k = 0; k < 3; k++) {
-      d.add(V((rand() - .5) * .5, (rand() - .3) * .32 + (depth === 0 ? -.05 : .08), (rand() - .5) * .5)).normalize();
-      p = p.clone().addScaledVector(d, len / 3); pts.push(p);
-    }
+    for (var k = 0; k < 3; k++) { d.add(V((rand() - .5) * .5, (rand() - .3) * .32 + (depth === 0 ? -.05 : .08), (rand() - .5) * .5)).normalize(); p = p.clone().addScaledVector(d, len / 3); pts.push(p); }
     var curve = new T.CatmullRomCurve3(pts), r1 = Math.max(.025, r0 * (depth ? .42 : .25));
     limbs.push(taperTube(curve, r0, r1, depth ? 10 : 5, depth > 1 ? 9 : depth ? 6 : 4));
     if (depth === 0) { for (var q = 0; q < 4; q++) twigPts.push(curve.getPoint(.35 + q * .2)); return; }
@@ -213,9 +189,7 @@
   }
   var trunk = new T.CatmullRomCurve3([V(0, -1.2, 0), V(.35, 2.4, .1), V(-.1, 5, 0), V(.35, 7.6, .1), V(1.1, 10.2, .25), V(1.9, 12.4, .3)]);
   limbs.push(taperTube(trunk, .95, .3, 40, 14));
-  [0, 1.3, 2.6, 3.9, 5.2].forEach(function (a) {
-    limbs.push(taperTube(new T.CatmullRomCurve3([V(Math.cos(a) * .3, .6, Math.sin(a) * .3), V(Math.cos(a) * .9, -.2, Math.sin(a) * .9), V(Math.cos(a) * 1.7, -.9, Math.sin(a) * 1.7)]), .38, .08, 6, 6));
-  });
+  [0, 1.3, 2.6, 3.9, 5.2].forEach(function (a) { limbs.push(taperTube(new T.CatmullRomCurve3([V(Math.cos(a) * .3, .6, Math.sin(a) * .3), V(Math.cos(a) * .9, -.2, Math.sin(a) * .9), V(Math.cos(a) * 1.7, -.9, Math.sin(a) * 1.7)]), .38, .08, 6, 6)); });
   [[.44, 0], [.52, 2.2], [.6, 4.1], [.67, 1.1], [.74, 3.2], [.8, 5.3], [.87, .4], [.93, 2.7], [1, 4.6]].forEach(function (b) {
     var p = trunk.getPointAt(b[0]), a = b[1], d = V(Math.cos(a) * .95, .32 + rand() * .3, Math.sin(a) * .95).normalize();
     branch(p, d, 8.4 - b[0] * 3.4, lerp(.95, .3, b[0]) * .62, 2);
@@ -244,8 +218,7 @@
     var tw = twigPts[Math.floor(rand() * twigPts.length)], rr = Math.pow(rand(), .55) * 1.55;
     p3.set(tw.x + (rand() - .5) * 2 * rr, tw.y + (rand() - .35) * 1.6 * rr, tw.z + (rand() - .5) * 2 * rr);
     e3.set(rand() * Math.PI, rand() * Math.PI * 2, rand() * Math.PI); q4.setFromEuler(e3);
-    var sc0 = .7 + rand() * .55; s3.set(sc0, sc0, sc0);
-    m4.compose(p3, q4, s3); leaves.setMatrixAt(i, m4); leafPos.push(p3.clone());
+    var sc0 = .7 + rand() * .55; s3.set(sc0, sc0, sc0); m4.compose(p3, q4, s3); leaves.setMatrixAt(i, m4); leafPos.push(p3.clone());
     aSeed[i] = rand(); aKeep[i] = rand();
     for (var s = 0; s < 4; s++) { var lc = col(pick(PAL[seasonsKeys[s]])); aC[s][i * 3] = lc.r; aC[s][i * 3 + 1] = lc.g; aC[s][i * 3 + 2] = lc.b; }
   }
@@ -253,43 +226,26 @@
   leafGeo.setAttribute("aSeed", new T.InstancedBufferAttribute(aSeed, 1));
   leafGeo.setAttribute("aKeep", new T.InstancedBufferAttribute(aKeep, 1));
   for (s = 0; s < 4; s++) leafGeo.setAttribute("aC" + s, new T.InstancedBufferAttribute(aC[s], 3));
-  var LEAF_VS_HEAD = "uniform float uTime,uSeason,uDrop; uniform vec2 uWind; attribute float aSeed,aKeep; attribute vec3 aC0,aC1,aC2,aC3; varying vec3 vLeaf;\n";
-  var LEAF_VS_BODY = [
-    "float sz = mod(uSeason,4.);",
-    "vLeaf = sz<1. ? mix(aC0,aC1,sz) : sz<2. ? mix(aC1,aC2,sz-1.) : sz<3. ? mix(aC2,aC3,sz-2.) : mix(aC3,aC0,sz-3.);",
-    "float keep = smoothstep(uDrop-.03, uDrop+.03, aKeep);",
-    "transformed *= keep;",
-    "vec4 mvPosition = vec4( transformed, 1.0 );",
-    "#ifdef USE_INSTANCING", "mvPosition = instanceMatrix * mvPosition;", "#endif",
-    "float hf = clamp(mvPosition.y/16.,0.,1.);",
-    "mvPosition.x += (sin(uTime*1.6+aSeed*6.28+mvPosition.y*.5)*.06 + uWind.x*1.1)*hf;",
-    "mvPosition.z += (cos(uTime*1.3+aSeed*4.)*.05 + uWind.y*1.1)*hf;",
-    "mvPosition.y += sin(uTime*2.1+aSeed*9.)*.03*hf;",
-    "mvPosition = modelViewMatrix * mvPosition;",
-    "gl_Position = projectionMatrix * mvPosition;"].join("\n");
-  function leafUniforms(sh) { sh.uniforms.uTime = U.uTime; sh.uniforms.uSeason = U.uSeason; sh.uniforms.uDrop = U.uDrop; sh.uniforms.uWind = U.uWind; }
   leafMat.onBeforeCompile = function (sh) {
-    leafUniforms(sh);
-    sh.vertexShader = LEAF_VS_HEAD + sh.vertexShader.replace("#include <project_vertex>", LEAF_VS_BODY);
+    sh.uniforms.uTime = U.uTime; sh.uniforms.uSeason = U.uSeason; sh.uniforms.uDrop = U.uDrop; sh.uniforms.uWind = U.uWind;
+    sh.vertexShader = "uniform float uTime,uSeason,uDrop; uniform vec2 uWind; attribute float aSeed,aKeep; attribute vec3 aC0,aC1,aC2,aC3; varying vec3 vLeaf;\n" + sh.vertexShader.replace("#include <project_vertex>", [
+      "float sz = mod(uSeason,4.);",
+      "vLeaf = sz<1. ? mix(aC0,aC1,sz) : sz<2. ? mix(aC1,aC2,sz-1.) : sz<3. ? mix(aC2,aC3,sz-2.) : mix(aC3,aC0,sz-3.);",
+      "transformed *= smoothstep(uDrop-.03, uDrop+.03, aKeep);",
+      "vec4 mvPosition = vec4( transformed, 1.0 );",
+      "#ifdef USE_INSTANCING", "mvPosition = instanceMatrix * mvPosition;", "#endif",
+      "float hf = clamp(mvPosition.y/16.,0.,1.);",
+      "mvPosition.x += (sin(uTime*1.6+aSeed*6.28+mvPosition.y*.5)*.06 + uWind.x*1.1)*hf;",
+      "mvPosition.z += (cos(uTime*1.3+aSeed*4.)*.05 + uWind.y*1.1)*hf;",
+      "mvPosition = modelViewMatrix * mvPosition; gl_Position = projectionMatrix * mvPosition;"].join("\n"));
     sh.fragmentShader = "varying vec3 vLeaf;\n" + sh.fragmentShader.replace("#include <color_fragment>", "#include <color_fragment>\n diffuseColor.rgb *= vLeaf; ");
   };
-  leaves.castShadow = false;
-  if (false) {
-    var leafDepth = new T.MeshDepthMaterial({ depthPacking: T.RGBADepthPacking, map: leafTex, alphaTest: .45 });
-    leafDepth.onBeforeCompile = function (sh) {
-      leafUniforms(sh);
-      sh.vertexShader = LEAF_VS_HEAD + sh.vertexShader.replace("#include <project_vertex>", LEAF_VS_BODY);
-      sh.fragmentShader = "varying vec3 vLeaf;\n" + sh.fragmentShader;
-    };
-    leaves.customDepthMaterial = leafDepth;
-  }
-  leaves.frustumCulled = false;
-  tree.add(leaves);
+  leaves.frustumCulled = false; tree.add(leaves);
 
   /* ---------- pasture grass in the wind ---------- */
   var bladeGeo = new T.PlaneGeometry(.09, .7, 1, 4); bladeGeo.translate(0, .35, 0);
   (function () {
-    var p = bladeGeo.attributes.position, c = new Float32Array(p.count * 3), lo = col("#2c401a"), hi = col("#93a24e"), tmp = new T.Color();
+    var p = bladeGeo.attributes.position, c = new Float32Array(p.count * 3), lo = col("#2c3a1c"), hi = col("#9a9a56"), tmp = new T.Color();
     for (var i = 0; i < p.count; i++) { var y = p.getY(i) / .7; p.setX(i, p.getX(i) * (1 - y * .9)); tmp.copy(lo).lerp(hi, y); c[i * 3] = tmp.r; c[i * 3 + 1] = tmp.g; c[i * 3 + 2] = tmp.b; }
     bladeGeo.setAttribute("color", new T.BufferAttribute(c, 3)); bladeGeo.computeVertexNormals();
   })();
@@ -297,98 +253,83 @@
   grassMat.onBeforeCompile = function (sh) {
     sh.uniforms.uTime = U.uTime; sh.uniforms.uWind = U.uWind; sh.uniforms.uFrost = U.uFrost;
     sh.vertexShader = "uniform float uTime,uFrost; uniform vec2 uWind; varying float vTip;\n" + sh.vertexShader.replace("#include <project_vertex>", [
-      "vTip = transformed.y/.7;",
-      "vec4 mvPosition = vec4( transformed, 1.0 );",
-      "vec3 ip = vec3(0.);",
-      "#ifdef USE_INSTANCING", "mvPosition = instanceMatrix * mvPosition;", "ip = instanceMatrix[3].xyz;", "#endif",
-      "float bend = vTip*vTip;",
-      "float gst = sin(uTime*1.7 + ip.x*.35 + ip.z*.22)*.5+.5;",
-      "mvPosition.x += (uWind.x*7. + .16*gst + sin(uTime*3.1+ip.z)*.04)*bend;",
-      "mvPosition.z += (uWind.y*5. + .06*gst)*bend;",
+      "vTip = transformed.y/.7;", "vec4 mvPosition = vec4( transformed, 1.0 ); vec3 ip = vec3(0.);",
+      "#ifdef USE_INSTANCING", "mvPosition = instanceMatrix * mvPosition; ip = instanceMatrix[3].xyz;", "#endif",
+      "float bend = vTip*vTip; float gst = sin(uTime*1.7 + ip.x*.35 + ip.z*.22)*.5+.5;",
+      "mvPosition.x += (uWind.x*7. + .16*gst + sin(uTime*3.1+ip.z)*.04)*bend; mvPosition.z += (uWind.y*5. + .06*gst)*bend;",
       "mvPosition = modelViewMatrix * mvPosition; gl_Position = projectionMatrix * mvPosition;"].join("\n"));
     sh.fragmentShader = "uniform float uFrost; varying float vTip;\n" + sh.fragmentShader.replace("#include <color_fragment>", "#include <color_fragment>\n diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.9,.93,.96), uFrost*smoothstep(.2,1.,vTip)*.8); ");
   };
-  var grassMeshes = [];
-  function grassPatch(cx, cz, radius, count, avoid) {
-    var gm = new T.InstancedMesh(bladeGeo, grassMat, Math.max(1, count)), placed = 0, tries = 0;
-    while (placed < count && tries < count * 4) {
-      tries++;
-      var a = rand() * Math.PI * 2, r = Math.sqrt(rand()) * radius, gx = cx + Math.cos(a) * r, gz = cz + Math.sin(a) * r;
-      if (avoid && Math.hypot(gx - avoid[0], gz - avoid[1]) < avoid[2]) continue;
-      var gs = .6 + rand() * .9;
-      e3.set((rand() - .5) * .3, rand() * Math.PI, (rand() - .5) * .3); q4.setFromEuler(e3); s3.set(gs, gs * (.8 + rand() * .7), gs);
-      p3.set(gx, hgt(gx, gz) - .02, gz); m4.compose(p3, q4, s3); gm.setMatrixAt(placed++, m4);
-    }
-    s3.set(1, 1, 1);
-    gm.count = placed; gm.userData.full = placed; gm.receiveShadow = true; gm.frustumCulled = false; scene.add(gm); grassMeshes.push(gm);
+  var grass = new T.InstancedMesh(bladeGeo, grassMat, mobile ? 3200 : 8500), gPlaced = 0, gTries = 0;
+  while (gPlaced < grass.count && gTries < grass.count * 4) {
+    gTries++;
+    var ga = rand() * Math.PI * 2, gr = Math.sqrt(rand()) * 34, gx = Math.cos(ga) * gr, gz = Math.sin(ga) * gr;
+    if (Math.hypot(gx, gz) < 1.6) continue;
+    var gs = .6 + rand() * .9; e3.set((rand() - .5) * .3, rand() * Math.PI, (rand() - .5) * .3); q4.setFromEuler(e3); s3.set(gs, gs * (.8 + rand() * .7), gs);
+    p3.set(gx, hgt(gx, gz) - .02, gz); m4.compose(p3, q4, s3); grass.setMatrixAt(gPlaced++, m4);
   }
-  var gScale = mobile ? .4 : 1;
-  grassPatch(0, 6, 32, Math.floor(7500 * gScale), [0, 0, 1.6]);
-  grassPatch(RIB.x, RIB.z + 6, 18, Math.floor(2200 * gScale));
-  grassPatch(ROS.x, ROS.z + 4, 16, Math.floor(1800 * gScale));
-  grassPatch(PAV.x, PAV.z + 14, 20, Math.floor(1800 * gScale), [PAV.x, PAV.z, 13.5]);
+  s3.set(1, 1, 1); grass.count = gPlaced; grass.userData.full = gPlaced; grass.receiveShadow = true; grass.frustumCulled = false; scene.add(grass);
 
-  /* ---------- the countryside: painted tree impostors on the far hills ---------- */
-  function treeCard(kind) {
-    return canvasTex(512, 512, function (g, w, h) {
-      g.clearRect(0, 0, w, h);
-      g.fillStyle = "#3a2f26"; g.fillRect(w / 2 - 9, h * .6, 18, h * .4);
-      var cx = w / 2, cy = kind === 1 ? h * .38 : h * .42, rx = kind === 1 ? w * .2 : kind === 2 ? w * .44 : w * .34, ry = kind === 1 ? h * .36 : kind === 2 ? h * .26 : h * .32;
-      var greens = kind === 2 ? ["#3c5a24", "#4b6a2a", "#2f4a1c", "#5a7a34"] : ["#2d4a1f", "#3a5a26", "#24401a", "#4a6a2e"];
-      for (var i = 0; i < 5200; i++) {
-        var a = rand() * Math.PI * 2, r = Math.sqrt(rand()), x = cx + Math.cos(a) * rx * r, y = cy + Math.sin(a) * ry * r + (rand() - .5) * 6;
-        var lit = clamp(.5 - (x - cx) / rx * .25 - (y - cy) / ry * .35 + (rand() - .5) * .3, 0, 1);
-        var c = new T.Color(pick(greens)); c.offsetHSL(0, 0, (lit - .5) * .16);
-        g.fillStyle = "#" + c.getHexString(); g.globalAlpha = .85;
-        g.globalAlpha = .55 + rand() * .4; g.beginPath(); g.ellipse(x, y, 4 + rand() * 9, 3 + rand() * 7, rand() * 3, 0, Math.PI * 2); g.fill();
-      }
-      g.globalAlpha = 1;
-    });
-  }
+  /* ---------- the countryside: painted tree cards on the far hills ---------- */
   (function () {
-    var N = mobile ? 110 : 260, kinds = [0, 1, 2].map(function (k) { return treeCard(k); });
-    var cross = (function () {
-      var g1 = new T.PlaneGeometry(1, 1); g1.translate(0, .5, 0);
-      var g2 = g1.clone(); g2.rotateY(Math.PI / 2);
-      var pos = [], uv = [], nor = [], idx = [], off = 0;
-      [g1, g2].forEach(function (g) {
-        var p = g.attributes.position.array, u = g.attributes.uv.array, ix = g.index.array;
-        for (var i = 0; i < p.length; i += 3) { pos.push(p[i], p[i + 1], p[i + 2]); nor.push(0, .92, .38); }
-        for (i = 0; i < u.length; i++) uv.push(u[i]); for (i = 0; i < ix.length; i++) idx.push(ix[i] + off); off += p.length / 3;
+    function treeCard(kind) {
+      return canvasTex(512, 512, function (g, w, h) {
+        g.clearRect(0, 0, w, h); g.fillStyle = "#2e2620"; g.fillRect(w / 2 - 9, h * .6, 18, h * .4);
+        var cx = w / 2, cy = kind === 1 ? h * .38 : h * .42, rx = kind === 1 ? w * .2 : kind === 2 ? w * .44 : w * .34, ry = kind === 1 ? h * .36 : kind === 2 ? h * .26 : h * .32;
+        var greens = ["#2d3a22", "#384528", "#25301c", "#45522f"];
+        for (var i = 0; i < 5200; i++) {
+          var a = rand() * Math.PI * 2, r = Math.sqrt(rand()), x = cx + Math.cos(a) * rx * r, y = cy + Math.sin(a) * ry * r + (rand() - .5) * 6;
+          var c = new T.Color(pick(greens)); c.offsetHSL(0, 0, (clamp(.5 - (x - cx) / rx * .25 - (y - cy) / ry * .35 + (rand() - .5) * .3, 0, 1) - .5) * .14);
+          g.fillStyle = "#" + c.getHexString(); g.globalAlpha = .55 + rand() * .4; g.beginPath(); g.ellipse(x, y, 4 + rand() * 9, 3 + rand() * 7, rand() * 3, 0, Math.PI * 2); g.fill();
+        }
+        g.globalAlpha = 1;
       });
+    }
+    var N = mobile ? 90 : 200, cross = (function () {
+      var g1 = new T.PlaneGeometry(1, 1); g1.translate(0, .5, 0); var g2 = g1.clone(); g2.rotateY(Math.PI / 2);
+      var pos = [], uv = [], nor = [], idx = [], off = 0;
+      [g1, g2].forEach(function (g) { var p = g.attributes.position.array, u = g.attributes.uv.array, ix = g.index.array; for (var i = 0; i < p.length; i += 3) { pos.push(p[i], p[i + 1], p[i + 2]); nor.push(0, .92, .38); } for (i = 0; i < u.length; i++) uv.push(u[i]); for (i = 0; i < ix.length; i++) idx.push(ix[i] + off); off += p.length / 3; });
       var g = new T.BufferGeometry(); g.setAttribute("position", new T.Float32BufferAttribute(pos, 3)); g.setAttribute("normal", new T.Float32BufferAttribute(nor, 3)); g.setAttribute("uv", new T.Float32BufferAttribute(uv, 2)); g.setIndex(idx); return g;
     })();
-    var meshes = kinds.map(function (tex) {
-      var mat = new T.MeshLambertMaterial({ map: tex, alphaTest: .4, alphaToCoverage: !mobile, side: T.DoubleSide });
+    var meshes = [0, 1, 2].map(function (k) {
+      var mat = new T.MeshLambertMaterial({ map: treeCard(k), alphaTest: .4, side: T.DoubleSide });
       mat.onBeforeCompile = function (sh) { sh.fragmentShader = sh.fragmentShader.replace("#include <normal_fragment_begin>", "vec3 normal = normalize( vNormal ); vec3 geometryNormal = normal;"); };
       var mm = new T.InstancedMesh(cross, mat, N); mm.count = 0; mm.frustumCulled = false; scene.add(mm); return mm;
     });
-    var keepOut = [[0, 0, 30], [RIB.x, RIB.z, 26], [PAV.x, PAV.z, 26], [ROS.x, ROS.z, 22], [-10, -5, 12],
-      [5, 48, 42], [RIB.x, RIB.z + 27, 34], [PAV.x, PAV.z + 21, 32], [ROS.x, ROS.z + 18, 30], [-34, 104, 44], [15, 22, 30], [4, 32, 34], [14, 74, 36], [3, 52, 40]], tries = 0, total = 0;
+    var tries = 0, total = 0;
     while (total < N * 3 && tries < N * 30) {
       tries++;
-      var a = rand() * Math.PI * 2, r = 50 + rand() * 360, fx = Math.cos(a) * r, fz = Math.sin(a) * r - 40;
+      var a = rand() * Math.PI * 2, r = 60 + rand() * 360, fx = Math.cos(a) * r, fz = Math.sin(a) * r;
       if (fbm(fx * .015 + 3, fz * .015, 3) < .46) continue;
-      if (keepOut.some(function (k) { return Math.hypot(fx - k[0], fz - k[1]) < k[2]; })) continue;
       var kind = Math.floor(rand() * 3), mm = meshes[kind]; if (mm.count >= N) continue;
       var ht = 7 + rand() * 9, wd = ht * (kind === 1 ? .55 : kind === 2 ? 1.1 : .85);
-      e3.set(0, rand() * Math.PI, 0); q4.setFromEuler(e3);
-      m4.compose(V(fx, hgt(fx, fz) - .4, fz), q4, V(wd, ht, wd)); mm.setMatrixAt(mm.count++, m4); total++;
+      e3.set(0, rand() * Math.PI, 0); q4.setFromEuler(e3); m4.compose(V(fx, hgt(fx, fz) - .4, fz), q4, V(wd, ht, wd)); mm.setMatrixAt(mm.count++, m4); total++;
     }
   })();
 
-  /* ---------- falling leaves (tumbling) and snow ---------- */
+  /* ---------- the studio: weatherboard cottage, windows glowing at dusk ---------- */
+  var CL = rot(V(-10, 0, -4)), cottage = new T.Group();
+  cottage.position.set(TREE.x + CL.x, hgt(TREE.x + CL.x, TREE.z + CL.z) - .3, TREE.z + CL.z); cottage.rotation.y = -(VIEW_AZ + Math.PI / 2) + .5; scene.add(cottage);
+  var boardTex = canvasTex(256, 256, function (g, w) { for (var bi = 0; bi < 16; bi++) { g.fillStyle = bi % 2 ? "#ece6d6" : "#e4ddcb"; g.fillRect(0, bi * 16, w, 16); g.fillStyle = "rgba(60,50,30,.25)"; g.fillRect(0, bi * 16 + 14, w, 2); } });
+  boardTex.wrapS = boardTex.wrapT = T.RepeatWrapping; boardTex.repeat.set(2, 1.4);
+  var walls = new T.Mesh(new T.BoxGeometry(5, 3.2, 3.8), new T.MeshStandardMaterial({ map: boardTex, roughness: .85 })); walls.position.y = 1.6; walls.castShadow = walls.receiveShadow = true; cottage.add(walls);
+  var roofC = new T.Mesh(new T.ConeGeometry(3.9, 2.4, 4), new T.MeshStandardMaterial({ color: 0x4a1438, metalness: .45, roughness: .45 })); roofC.position.y = 4.4; roofC.rotation.y = Math.PI / 4; roofC.scale.set(1.05, 1, .8); roofC.castShadow = true; cottage.add(roofC);
+  var chimney = new T.Mesh(new T.BoxGeometry(.6, 1.6, .6), new T.MeshStandardMaterial({ color: 0x7a4232, roughness: .95 })); chimney.position.set(1.4, 4.6, -.6); cottage.add(chimney);
+  var winMat = new T.MeshBasicMaterial({ color: new T.Color(3.2, 2.1, .9) });            // HDR glow for the bloom pass
+  [-1.2, 1.2].forEach(function (wx) { var w = new T.Mesh(new T.PlaneGeometry(1, 1.1), winMat); w.position.set(wx, 1.9, 1.91); cottage.add(w); });
+  var door = new T.Mesh(new T.PlaneGeometry(.9, 1.8), new T.MeshStandardMaterial({ color: 0x3e4a16, roughness: .6 })); door.position.set(0, .9, 1.91); cottage.add(door);
+
+  /* ---------- falling leaves, snow, fireflies, birds ---------- */
   var FN = reduce ? 0 : (mobile ? 60 : 140), SN = reduce ? 0 : (mobile ? 600 : 1200);
-  var fallMat = new T.MeshLambertMaterial({ map: leafTex, alphaTest: .45, side: T.DoubleSide });
-  var falling = new T.InstancedMesh(leafGeo.clone(), fallMat, Math.max(FN, 1)); falling.frustumCulled = false; scene.add(falling);
+  var falling = new T.InstancedMesh(leafGeo.clone(), new T.MeshLambertMaterial({ map: leafTex, alphaTest: .45, side: T.DoubleSide }), Math.max(FN, 1)); falling.frustumCulled = false; scene.add(falling);
   falling.instanceColor = new T.InstancedBufferAttribute(new Float32Array(Math.max(FN, 1) * 3).fill(1), 3);
   var fState = [];
   for (i = 0; i < Math.max(FN, 1); i++) { fState.push({ alive: false, p: V(0, 0, 0), v: V(0, 0, 0), r: V(0, 0, 0), rv: V(0, 0, 0), c: new T.Color() }); m4.makeScale(0, 0, 0); falling.setMatrixAt(i, m4); }
+  var softDot = canvasTex(32, 32, function (g) { var gr = g.createRadialGradient(16, 16, 0, 16, 16, 16); gr.addColorStop(0, "rgba(255,255,255,1)"); gr.addColorStop(.5, "rgba(255,255,255,.7)"); gr.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = gr; g.fillRect(0, 0, 32, 32); });
   var snowPos = new Float32Array(Math.max(SN, 1) * 3), snowVel = new Float32Array(Math.max(SN, 1));
   for (i = 0; i < SN; i++) { snowPos[i * 3] = (rand() - .5) * 70; snowPos[i * 3 + 1] = rand() * 34; snowPos[i * 3 + 2] = (rand() - .5) * 70; snowVel[i] = 1 + rand() * 1.4; }
   var snowGeo = new T.BufferGeometry(); snowGeo.setAttribute("position", new T.BufferAttribute(snowPos, 3));
-  var softDot = canvasTex(32, 32, function (g) { var gr = g.createRadialGradient(16, 16, 0, 16, 16, 16); gr.addColorStop(0, "rgba(255,255,255,1)"); gr.addColorStop(.5, "rgba(255,255,255,.7)"); gr.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = gr; g.fillRect(0, 0, 32, 32); });
-  var snowMat = new T.PointsMaterial({ size: mobile ? .7 : .55, map: softDot, transparent: true, depthWrite: false, opacity: 0, fog: false, color: 0xffffff });
+  var snowMat = new T.PointsMaterial({ size: mobile ? .7 : .55, map: softDot, transparent: true, depthWrite: false, opacity: 0, fog: false });
   var snow = new T.Points(snowGeo, snowMat); snow.frustumCulled = false; scene.add(snow);
   var spawnAcc = 0;
   function spawnLeaf(sv) {
@@ -400,258 +341,72 @@
       st.c.set(pick(PAL[sv < 1 ? "spring" : sv < 2 ? "summer" : "autumn"])); falling.setColorAt(i, st.c); st.alive = true; return;
     }
   }
-
-  /* ---------- birds ---------- */
-  var birds = [], birdMat = new T.MeshBasicMaterial({ color: 0x1d1a1c, side: T.DoubleSide });
-  for (var bd = 0; bd < (mobile ? 7 : 13); bd++) {
-    var bg = new T.BufferGeometry();
-    bg.setAttribute("position", new T.BufferAttribute(new Float32Array([0, 0, .18, -.8, 0, 0, 0, 0, -.18, 0, 0, .18, .8, 0, 0, 0, 0, -.18]), 3));
-    var bm = new T.Mesh(bg, birdMat); bm.userData = { r: 20 + rand() * 30, a: rand() * 6.28, sp: .1 + rand() * .08, y: 40 + rand() * 18, ph: rand() * 6 };
-    birds.push(bm); scene.add(bm);
-  }
-
-  /* ---------- canvas text textures (redrawn when fonts are ready) ---------- */
-  var textJobs = [];
-  function textTexture(w, h, draw) {
-    var c = document.createElement("canvas"); c.width = w; c.height = h;
-    var tex = new T.CanvasTexture(c); tex.encoding = T.sRGBEncoding; tex.anisotropy = maxAniso;
-    var job = function () { var g = c.getContext("2d"); g.clearRect(0, 0, w, h); draw(g, w, h); tex.needsUpdate = true; };
-    job(); textJobs.push(job); return tex;
-  }
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { textJobs.forEach(function (j) { j(); }); });
-
-  /* ---------- satin cloth (ribbons, rosette tails, flags) with lit waves ---------- */
-  function clothMaterial(map, seedV, opts) {
-    opts = opts || {};
-    var m = new T.MeshStandardMaterial({ map: map, roughness: opts.rough || .38, metalness: .08, side: T.DoubleSide });
-    m.onBeforeCompile = function (sh) {
-      sh.uniforms.uTime = U.uTime; sh.uniforms.uWind = U.uWind; sh.uniforms.uSeed = { value: seedV };
-      var hz = !!opts.horizontal;
-      sh.vertexShader = "uniform float uTime,uSeed; uniform vec2 uWind;\n" + sh.vertexShader
-        .replace("#include <beginnormal_vertex>", [
-          "float fq = " + (hz ? "uv.x" : "1.-uv.y") + ";",
-          "float ph = uTime*2.3 + fq*5.5 + uSeed;",
-          "float dzd = cos(ph)*5.5*.42*fq + sin(ph)*.42 + uWind.x*6.*fq;",
-          "vec3 objectNormal = normalize(vec3(" + (hz ? "-dzd*.35, 0., 1." : "0., -dzd*.35, 1.") + "));",
-          "#ifdef USE_TANGENT", "vec3 objectTangent = vec3( tangent.xyz );", "#endif"].join("\n"))
-        .replace("#include <begin_vertex>", [
-          "vec3 transformed = vec3( position );",
-          "transformed.z += sin(ph)*.42*fq + uWind.x*3.*fq*fq;",
-          "transformed.x += sin(uTime*1.7 + fq*4. + uSeed*2.)*.1*fq + uWind.x*2.*fq;"].join("\n"));
-      if (opts.notch) sh.fragmentShader = sh.fragmentShader.replace("#include <map_fragment>", "#include <map_fragment>\n if(vUv.y < .13*(1.-abs(vUv.x-.5)*2.)) discard;");
-    };
-    return m;
-  }
-
-  /* ---------- the class ribbon field ---------- */
-  var CLASSES = [["1", "Website design"], ["2", "Wild Apricot"], ["3", "Print & advertising"], ["4", "Branding"], ["5", "SEO & marketing"], ["6", "Copywriting"], ["7", "Care Plan"]];
-  var RCOL = ["#561540", "#3e4a16", "#2a5f7e"];
-  var woodTex = canvasTex(128, 512, function (g, w, h) {
-    g.fillStyle = "#8a6a45"; g.fillRect(0, 0, w, h);
-    for (var i = 0; i < 160; i++) { g.strokeStyle = pick(["#6b4f31", "#a07c52", "#5a4129", "#b48d5e"]); g.globalAlpha = .25 + rand() * .4; g.lineWidth = .5 + rand() * 2; var x = rand() * w; g.beginPath(); g.moveTo(x, 0); g.bezierCurveTo(x + 6, h * .3, x - 6, h * .6, x + (rand() - .5) * 8, h); g.stroke(); }
-    g.globalAlpha = 1;
-  }, [1, 1]);
-  var timberMat = new T.MeshStandardMaterial({ map: woodTex, bumpMap: woodTex, bumpScale: .03, roughness: .85, color: 0xcfc1ae });
-  var postMat = new T.MeshStandardMaterial({ map: woodTex, roughness: .8, color: 0x8a8f6a });
-  var brassMat = new T.MeshStandardMaterial({ color: 0xd6b26a, metalness: .85, roughness: .32 });
-  var ribbonField = new T.Group(); ribbonField.position.copy(RIB); scene.add(ribbonField);
-  CLASSES.forEach(function (cl, i) {
-    var rx = (i - 3) * 2.6, rz = -Math.abs(i - 3) * 0.9;
-    var post = new T.Mesh(new T.CylinderGeometry(.1, .13, 8.4, 10), postMat); post.position.set(rx, 4.2, rz); post.castShadow = true; ribbonField.add(post);
-    var knob = new T.Mesh(new T.SphereGeometry(.22, 16, 12), brassMat); knob.position.set(rx, 8.5, rz); ribbonField.add(knob);
-    var tex = textTexture(200, 800, function (g, w, h) {
-      g.fillStyle = RCOL[i % 3]; g.fillRect(0, 0, w, h);
-      var sh = g.createLinearGradient(0, 0, w, 0); sh.addColorStop(0, "rgba(0,0,0,.18)"); sh.addColorStop(.5, "rgba(255,255,255,.12)"); sh.addColorStop(1, "rgba(0,0,0,.18)"); g.fillStyle = sh; g.fillRect(0, 0, w, h);
-      g.strokeStyle = "rgba(227,194,124,.85)"; g.lineWidth = 5; g.strokeRect(14, -10, w - 28, h + 20);
-      g.fillStyle = "#e3c27c"; g.beginPath(); g.arc(w / 2, 108, 62, 0, Math.PI * 2); g.fill();
-      g.fillStyle = RCOL[i % 3]; g.font = "400 76px Bevan, Georgia, serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(cl[0], w / 2, 113);
-      g.save(); g.translate(w / 2, 212); g.rotate(Math.PI / 2); g.fillStyle = "#fbfcf7"; g.textAlign = "left"; g.textBaseline = "middle";
-      var fz = 58, face = "px 'Sofia Sans Extra Condensed', 'Arial Narrow', sans-serif"; g.font = "800 " + fz + face;
-      var twd = g.measureText(cl[1].toUpperCase()).width; if (twd > 450) { fz = Math.floor(fz * 450 / twd); g.font = "800 " + fz + face; }
-      g.fillText(cl[1].toUpperCase(), 0, 0); g.restore();
-    });
-    var m = new T.Mesh(new T.PlaneGeometry(1.15, 4.6, 6, 40), clothMaterial(tex, i * 1.7, { notch: true }));
-    m.position.set(rx + .62, 8.1 - 2.3, rz + .05); m.castShadow = true; ribbonField.add(m);
-  });
-  var bunting = [];
-  function addBunting(group, from, to, sag, n, colors) {
-    var pts = []; for (var kk = 0; kk <= 24; kk++) { var t = kk / 24, p = from.clone().lerp(to, t); p.y -= Math.sin(Math.PI * t) * sag; pts.push(p); }
-    group.add(new T.Line(new T.BufferGeometry().setFromPoints(pts), new T.LineBasicMaterial({ color: 0x2b2227 })));
-    var flagGeo = new T.BufferGeometry(); flagGeo.setAttribute("position", new T.BufferAttribute(new Float32Array([-.32, 0, 0, .32, 0, 0, 0, -.7, 0]), 3)); flagGeo.computeVertexNormals();
-    for (var f = 1; f < n; f++) {
-      var t2 = f / n, p2 = from.clone().lerp(to, t2); p2.y -= Math.sin(Math.PI * t2) * sag;
-      var fl = new T.Mesh(flagGeo, new T.MeshStandardMaterial({ color: colors[f % colors.length], side: T.DoubleSide, roughness: .8 }));
-      fl.position.copy(p2); fl.lookAt(p2.x, p2.y, p2.z + 10); fl.userData.ph = f * .7; fl.castShadow = true; group.add(fl); bunting.push(fl);
-    }
-  }
-  addBunting(ribbonField, V(-7.8, 8.3, -2.7), V(7.8, 8.3, -2.7), 1.1, 22, [0x561540, 0xd9b670, 0x3e4a16, 0x2a5f7e]);
-
-  /* ---------- the show marquee: striped canvas roof, timber floor, hanging entries ---------- */
-  var pavilion = new T.Group(); pavilion.position.copy(PAV); scene.add(pavilion);
-  var boardsTex = canvasTex(512, 512, function (g, w) {
-    for (var i = 0; i < 16; i++) {
-      g.fillStyle = pick(["#9b7a52", "#a5845a", "#8f6f48", "#ae8c60"]); g.fillRect(0, i * 32, w, 32); g.fillStyle = "rgba(40,25,10,.45)"; g.fillRect(0, i * 32, w, 2);
-      for (var kk = 0; kk < 30; kk++) { g.fillStyle = "rgba(60,40,20," + (rand() * .2).toFixed(2) + ")"; g.fillRect(rand() * w, i * 32 + rand() * 30, 20 + rand() * 60, 1); }
-    }
-  }, [3, 3]);
-  var floor = new T.Mesh(new T.CylinderGeometry(12.5, 12.8, .5, 48), new T.MeshStandardMaterial({ map: boardsTex, roughness: .8 })); floor.position.y = .1; floor.receiveShadow = true; pavilion.add(floor);
-  for (var pp = 0; pp < 8; pp++) {
-    var pa = pp / 8 * Math.PI * 2 + Math.PI / 8;
-    var post2 = new T.Mesh(new T.CylinderGeometry(.2, .24, 7.4, 10), timberMat); post2.position.set(Math.cos(pa) * 11.6, 3.9, Math.sin(pa) * 11.6); post2.castShadow = true; pavilion.add(post2);
-  }
-  var stripeTex = canvasTex(1024, 256, function (g, w, h) { for (var si = 0; si < 16; si++) { g.fillStyle = si % 2 ? "#ece4d6" : "#561540"; g.fillRect(si * w / 16, 0, w / 16 + 1, h); } g.fillStyle = "rgba(0,0,0,.06)"; for (si = 0; si < 300; si++) g.fillRect(rand() * w, rand() * h, 1, 4); });
-  var roofMat = new T.MeshStandardMaterial({ map: stripeTex, roughness: .92, side: T.DoubleSide });
-  var roof = new T.Mesh(new T.ConeGeometry(14.2, 4.8, 16, 1, true), roofMat); roof.position.y = 10; roof.castShadow = true; pavilion.add(roof);
-  var valance = new T.Mesh(new T.CylinderGeometry(14.2, 14.2, 1.1, 32, 1, true), roofMat); valance.position.y = 7.1; pavilion.add(valance);
-  var finial = new T.Mesh(new T.SphereGeometry(.42, 16, 12), brassMat); finial.position.y = 12.5; pavilion.add(finial);
-  var flagPole = new T.Mesh(new T.CylinderGeometry(.05, .05, 2.4, 8), timberMat); flagPole.position.y = 13.4; pavilion.add(flagPole);
-  var flag = new T.Mesh(new T.PlaneGeometry(1.9, 1.05, 12, 4), clothMaterial(canvasTex(64, 32, function (g) { g.fillStyle = "#e3c27c"; g.fillRect(0, 0, 64, 32); }), 3, { horizontal: true }));
-  flag.position.set(.95, 14, 0); pavilion.add(flag);
-  roofMat.emissive = col("#3a1a10"); roofMat.emissiveIntensity = 0;
-
-  var carousel = new T.Group(); carousel.position.y = 3.6; pavilion.add(carousel);
-  var cards = [], entries = (HC.entries || []).slice();
-  var featured = ["parramatta-district-regional-law-society", "farm-writers-association-of-nsw", "knox-farms", "botanical-art-society-logo", "jnw-strategic-consulting", "red-olive-restaurant", "colour-society-of-australia", "maserati-club-of-australia"];
-  var shown = PAGE === "work" ? entries.slice(0, mobile ? 10 : 16) : featured.map(function (sl) { return entries.filter(function (e) { return e.slug === sl; })[0]; }).filter(Boolean);
-  var R = shown.length > 10 ? 10.2 : 8.6;
-  var loader = new T.TextureLoader(), cls = HC.classes || {};
-  var paperMat = new T.MeshStandardMaterial({ color: 0xf6f3ea, emissive: 0x6a5f50, roughness: .9 });
-  var stringMat = new T.LineBasicMaterial({ color: 0x4a3a28 });
-  shown.forEach(function (e, ci) {
-    var a = ci / shown.length * Math.PI * 2;
-    var holder = new T.Group(); holder.position.set(Math.sin(a) * R, 0, Math.cos(a) * R); holder.rotation.y = a; carousel.add(holder);
-    var card = new T.Group(); holder.add(card);
-    var frame = new T.Mesh(new T.BoxGeometry(3.2, 2.62, .07), paperMat); frame.castShadow = true; card.add(frame);
-    var placeholder = textTexture(512, 384, function (g, w, h) {
-      g.fillStyle = "#efefef"; g.fillRect(0, 0, w, h); g.fillStyle = "#561642"; g.font = "400 34px Bevan, Georgia, serif"; g.textAlign = "center";
-      var words = e.title.split(" "), line = "", lines = []; words.forEach(function (wd) { if ((line + wd).length > 18) { lines.push(line); line = ""; } line += wd + " "; }); lines.push(line);
-      lines.forEach(function (l, kk) { g.fillText(l.trim(), w / 2, h / 2 - 20 + kk * 40); });
-    });
-    var imgMat = new T.MeshStandardMaterial({ map: placeholder, emissiveMap: placeholder, emissive: 0xffffff, emissiveIntensity: .32, roughness: .55 });
-    var img = new T.Mesh(new T.PlaneGeometry(2.96, 2.22), imgMat); img.position.set(0, .12, .04); card.add(img);
-    if (location.protocol !== "file:") loader.load(BASE + e.img, function (tx) { tx.encoding = T.sRGBEncoding; tx.anisotropy = maxAniso; if (e.contain) { tx.repeat.set(.82, .82); tx.offset.set(.09, .09); } imgMat.map = tx; imgMat.emissiveMap = tx; imgMat.needsUpdate = true; });
-    var label = textTexture(512, 64, function (g, w, h) { g.fillStyle = "#f6f3ea"; g.fillRect(0, 0, w, h); g.fillStyle = "#1f1a1e"; g.font = "400 26px Bevan, Georgia, serif"; g.fillText(e.title.length > 32 ? e.title.slice(0, 31) + "…" : e.title, 14, 40); });
-    var lab = new T.Mesh(new T.PlaneGeometry(2.96, .37), new T.MeshStandardMaterial({ map: label, emissiveMap: label, emissive: 0xffffff, emissiveIntensity: .3, roughness: .9 })); lab.position.set(0, -1.12, .04); card.add(lab);
-    var tagTxt = textTexture(128, 96, function (g, w) { g.fillStyle = "#e3c27c"; g.fillRect(0, 0, w, 96); g.fillStyle = "#34102a"; g.font = "800 30px 'Sofia Sans Extra Condensed', sans-serif"; g.textAlign = "center"; g.fillText("CLASS " + ((cls[e.cls] || {}).no || ""), w / 2, 60); });
-    var tag = new T.Mesh(new T.PlaneGeometry(.62, .44), new T.MeshStandardMaterial({ map: tagTxt, roughness: .9, side: T.DoubleSide })); tag.position.set(1.1, 1.38, .05); tag.rotation.z = .12; card.add(tag);
-    card.add(new T.Line(new T.BufferGeometry().setFromPoints([V(0, 1.31, 0), V(0, 3.4, 0)]), stringMat));
-    card.userData = { entry: e, swing: 0, sv: 0, lift: 0, i: ci };
-    frame.userData.card = card; img.userData.card = card; lab.userData.card = card;
-    cards.push(card);
-  });
-  addBunting(pavilion, V(-11.6, 7.4, 4.4), V(11.6, 7.4, 4.4), .9, 20, [0x561540, 0xd9b670, 0x3e4a16, 0x2a5f7e]);
-
-  /* ---------- the judges' rosette: satin pleats ---------- */
-  var rosette = new T.Group(); rosette.position.set(ROS.x, ROS.y + 7.5, ROS.z); scene.add(rosette);
-  var rosInner = new T.Group(); rosette.add(rosInner);
-  function pleatRing(r0, r1, n, color, zz) {
-    var geo = new T.PlaneGeometry(r1 - r0, (Math.PI * 2 * r1) / n * 1.18), mat = new T.MeshStandardMaterial({ color: color, emissive: color, emissiveIntensity: .14, roughness: .3, metalness: .12, side: T.DoubleSide });
-    for (var kk = 0; kk < n; kk++) { var mm = new T.Mesh(geo, mat), a = kk / n * Math.PI * 2; mm.position.set(Math.cos(a) * (r0 + r1) / 2, Math.sin(a) * (r0 + r1) / 2, zz); mm.rotation.z = a; mm.rotateX(kk % 2 ? .55 : -.55); mm.castShadow = true; rosInner.add(mm); }
-  }
-  pleatRing(2.4, 3.6, 72, 0x5a1744, 0);
-  pleatRing(1.55, 2.5, 54, 0xd8b56e, .12);
-  var rosTex, rosCenter = new T.Mesh(new T.CircleGeometry(1.6, 64), new T.MeshStandardMaterial({ roughness: .6, metalness: .05, emissive: 0xffffff, emissiveIntensity: .22, map: rosTex = textTexture(512, 512, function (g, w, h) {
-    var gr = g.createRadialGradient(w / 2, h / 2, 10, w / 2, h / 2, w / 2); gr.addColorStop(0, "#fbf8f0"); gr.addColorStop(1, "#e9e2d1"); g.fillStyle = gr; g.beginPath(); g.arc(w / 2, h / 2, w / 2, 0, Math.PI * 2); g.fill();
-    g.strokeStyle = "#b8963f"; g.lineWidth = 12; g.beginPath(); g.arc(w / 2, h / 2, w / 2 - 30, 0, Math.PI * 2); g.stroke();
-    g.fillStyle = "#561642"; g.textAlign = "center"; g.font = "800 92px 'Sofia Sans Extra Condensed', sans-serif"; g.fillText("HIGHLY", w / 2, h / 2 - 6);
-    g.font = "800 66px 'Sofia Sans Extra Condensed', sans-serif"; g.fillText("COMMENDED", w / 2, h / 2 + 72);
-  }) }));
-  rosCenter.material.emissiveMap = rosTex; rosCenter.position.z = .25; rosInner.add(rosCenter);
-  var tailTex = textTexture(64, 256, function (g, w, h) { g.fillStyle = "#561540"; g.fillRect(0, 0, w, h); var gr = g.createLinearGradient(0, 0, w, 0); gr.addColorStop(0, "rgba(0,0,0,.2)"); gr.addColorStop(.5, "rgba(255,255,255,.14)"); gr.addColorStop(1, "rgba(0,0,0,.2)"); g.fillStyle = gr; g.fillRect(0, 0, w, h); });
-  [-1, 1].forEach(function (sgn, kk) {
-    var tail = new T.Mesh(new T.PlaneGeometry(1.3, 6, 4, 30), clothMaterial(tailTex, kk * 2.1, { notch: true, rough: .3 }));
-    tail.position.set(sgn * .9, -4.2, -.1); tail.rotation.z = sgn * .2; tail.castShadow = true; rosette.add(tail);
-  });
-  var rosSpin = 0, rosSpinV = 0;
-
-  /* ---------- the studio: weatherboard cottage whose windows light at dusk ---------- */
-  var cottage = new T.Group(), CX = TREE.x - 10, CZ = TREE.z - 5; cottage.position.set(CX, hgt(CX, CZ) - .3, CZ); cottage.rotation.y = .5; scene.add(cottage);
-  var boardTex = canvasTex(256, 256, function (g, w) { for (var bi = 0; bi < 16; bi++) { g.fillStyle = bi % 2 ? "#ece6d6" : "#e4ddcb"; g.fillRect(0, bi * 16, w, 16); g.fillStyle = "rgba(60,50,30,.25)"; g.fillRect(0, bi * 16 + 14, w, 2); } }, [2, 1.4]);
-  var walls = new T.Mesh(new T.BoxGeometry(5, 3.2, 3.8), new T.MeshStandardMaterial({ map: boardTex, roughness: .85 })); walls.position.y = 1.6; walls.castShadow = walls.receiveShadow = true; cottage.add(walls);
-  var ironTex = canvasTex(256, 64, function (g, w, h) { for (var ii = 0; ii < 32; ii++) { var gr = g.createLinearGradient(ii * 8, 0, ii * 8 + 8, 0); gr.addColorStop(0, "#40102f"); gr.addColorStop(.5, "#5e1846"); gr.addColorStop(1, "#40102f"); g.fillStyle = gr; g.fillRect(ii * 8, 0, 8, h); } }, [3, 1]);
-  var roof2 = new T.Mesh(new T.ConeGeometry(3.9, 2.4, 4), new T.MeshStandardMaterial({ map: ironTex, metalness: .45, roughness: .45 })); roof2.position.y = 4.4; roof2.rotation.y = Math.PI / 4; roof2.scale.set(1.05, 1, .8); roof2.castShadow = true; cottage.add(roof2);
-  var chimney = new T.Mesh(new T.BoxGeometry(.6, 1.6, .6), new T.MeshStandardMaterial({ color: 0x8a4a35, roughness: .95 })); chimney.position.set(1.4, 4.6, -.6); chimney.castShadow = true; cottage.add(chimney);
-  var winMat = new T.MeshStandardMaterial({ color: 0x2c3036, roughness: .15, metalness: .3, emissive: 0xffc566, emissiveIntensity: 0 });
-  [-1.2, 1.2].forEach(function (wx) {
-    var w = new T.Mesh(new T.PlaneGeometry(1, 1.1), winMat); w.position.set(wx, 1.9, 1.91); cottage.add(w);
-    var fr = new T.Mesh(new T.PlaneGeometry(1.16, 1.26), new T.MeshStandardMaterial({ color: 0xf6f3ea, roughness: .8 })); fr.position.set(wx, 1.9, 1.905); cottage.add(fr);
-  });
-  var door = new T.Mesh(new T.PlaneGeometry(.9, 1.8), new T.MeshStandardMaterial({ color: 0x48541a, roughness: .6 })); door.position.set(0, .9, 1.91); cottage.add(door);
-
-
-  /* ---------- night: stars and fireflies ---------- */
-  var sN = mobile ? 400 : 900, sPos = new Float32Array(sN * 3);
-  for (var sti = 0; sti < sN; sti++) { var th = rand() * Math.PI * 2, ph = .05 + rand() * 1.2; sPos[sti * 3] = Math.cos(th) * Math.cos(ph) * 1000; sPos[sti * 3 + 1] = Math.sin(ph) * 1000; sPos[sti * 3 + 2] = Math.sin(th) * Math.cos(ph) * 1000; }
-  var starGeo = new T.BufferGeometry(); starGeo.setAttribute("position", new T.BufferAttribute(sPos, 3));
-  var starMat = new T.PointsMaterial({ color: 0xfff3dc, size: 1.8, sizeAttenuation: false, transparent: true, opacity: 0, fog: false, depthWrite: false });
-  scene.add(new T.Points(starGeo, starMat));
-  var ffN = mobile ? 24 : 50, ffPos = new Float32Array(ffN * 3), ffBase = [];
-  for (var ff = 0; ff < ffN; ff++) { var fa = rand() * 6.28, fr2 = 3 + rand() * 12; ffBase.push([Math.cos(fa) * fr2, 1 + rand() * 6, Math.sin(fa) * fr2, rand() * 6.28]); }
+  var ffN = mobile ? 30 : 60, ffPos = new Float32Array(ffN * 3), ffBase = [];
+  for (var ff = 0; ff < ffN; ff++) { var fa = rand() * 6.28, fr2 = 3 + rand() * 14; ffBase.push([Math.cos(fa) * fr2, .8 + rand() * 6, Math.sin(fa) * fr2, rand() * 6.28]); }
   var ffGeo = new T.BufferGeometry(); ffGeo.setAttribute("position", new T.BufferAttribute(ffPos, 3));
-  var ffMat = new T.PointsMaterial({ color: 0xffd56b, size: mobile ? 4 : 5, sizeAttenuation: false, transparent: true, opacity: 0, depthWrite: false, blending: T.AdditiveBlending, fog: false, map: softDot });
+  var ffMat = new T.PointsMaterial({ color: new T.Color(4, 3, 1.1), size: mobile ? .28 : .22, map: softDot, transparent: true, depthWrite: false, blending: T.AdditiveBlending, fog: false });
   var fireflies = new T.Points(ffGeo, ffMat); fireflies.position.copy(TREE); fireflies.frustumCulled = false; scene.add(fireflies);
-
-  /* ---------- stations ---------- */
-  var heroLookX = mobile ? 0 : -1;
-  var ST = {
-    tree: { pos: V(TREE.x + 5, TREE.y + 9, TREE.z + 48), look: V(TREE.x + heroLookX, TREE.y + 9.5, TREE.z), dusk: .42, orbit: true },
-    ribbons: { pos: V(RIB.x, RIB.y + 6.4, RIB.z + (mobile ? 22 : 27)), look: V(RIB.x, RIB.y + 5, RIB.z), dusk: .36 },
-    sky: { pos: V(14, 40, 74), look: V(-24, 76, -50), dusk: .45 },
-    pavilion: { pos: V(PAV.x, PAV.y + (mobile ? 4.4 : 4.6), PAV.z + (mobile ? 25 : 21)), look: V(PAV.x, PAV.y + (mobile ? 4.6 : 3.7), PAV.z), dusk: .48, carousel: true },
-    rosette: { pos: V(ROS.x, ROS.y + 7.2, ROS.z + 18), look: V(ROS.x, ROS.y + 7, ROS.z), dusk: .42, rosette: true },
-    meadow: { pos: V(-34, 30, 104), look: V(4, 6, -10), dusk: .55 },
-    studio: { pos: V(TREE.x + 9, TREE.y + 7, TREE.z + 30), look: V(TREE.x - 5, TREE.y + 5.5, TREE.z - 2), dusk: .66 },
-    dusk: { pos: V(TREE.x + 4, TREE.y + 5, TREE.z + 32), look: V(TREE.x - 5, TREE.y + 6, TREE.z), dusk: 1 }
-  };
-  if (mobile) { ST.tree.pos = V(TREE.x + 3, TREE.y + 7, TREE.z + 52); ST.tree.look = V(TREE.x, TREE.y + 11, TREE.z); }
-  ST.hero = { pos: ST.tree.pos.clone(), look: ST.tree.look.clone().add(V(mobile ? 0 : -9, 0, 0)), dusk: .86, orbit: true };
-  ST.eve = { pos: ST.meadow.pos.clone(), look: ST.meadow.look.clone(), dusk: .9 };
-  var PAGE_STATION = { home: "hero", services: "ribbons", "wild-apricot": "sky", work: "pavilion", about: "studio", contact: "dusk", pitch: "meadow" };
-
-  var anchors = [], hero = document.querySelector("[data-hero]");
-  function measure() {
-    var vh = innerHeight, y = scrollY, list = [].slice.call(document.querySelectorAll("[data-station]"));
-    anchors = list.map(function (el) {
-      var r = el.getBoundingClientRect(), top = r.top + y, hh = r.height, start = top - vh * .45, end = Math.max(start, top + hh - vh * .75);
-      var sd = el.getAttribute("data-side");
-      return { st: el.getAttribute("data-station"), side: sd === "left" ? 1 : sd === "right" ? -1 : 0, start: start, end: end };
-    }).sort(function (a, b) { return a.start - b.start; });
-    if (!anchors.length) anchors = [{ st: PAGE_STATION[PAGE] || "tree", side: 0, start: 0, end: 1e9 }];
-    anchors[0].start = Math.min(anchors[0].start, 0);
+  var birds = [], birdMat = new T.MeshBasicMaterial({ color: 0x1b1418, side: T.DoubleSide });
+  for (var bd = 0; bd < (mobile ? 5 : 9); bd++) {
+    var bg = new T.BufferGeometry(); bg.setAttribute("position", new T.BufferAttribute(new Float32Array([0, 0, .18, -.8, 0, 0, 0, 0, -.18, 0, 0, .18, .8, 0, 0, 0, 0, -.18]), 3));
+    var bm = new T.Mesh(bg, birdMat); bm.userData = { r: 24 + rand() * 30, a: rand() * 6.28, sp: .08 + rand() * .06, y: 34 + rand() * 14, ph: rand() * 6 }; birds.push(bm); scene.add(bm);
   }
+
+  /* ---------- post: bloom, edge depth of field, softness, grain, vignette, ACES ---------- */
+  var rtType = isGL2 || renderer.extensions.has("OES_texture_half_float") ? T.HalfFloatType : T.UnsignedByteType;
+  function makeRT(w, h, ms) { var r = new T.WebGLRenderTarget(w, h, { type: rtType, depthBuffer: !!ms }); if (ms && isGL2 && !mobile) r.samples = 4; return r; }
+  var rtScene = makeRT(2, 2, true), rtA = makeRT(2, 2), rtB = makeRT(2, 2);
+  var quadCam = new T.OrthographicCamera(-1, 1, 1, -1, 0, 1), quadScene = new T.Scene(), quad = new T.Mesh(new T.PlaneGeometry(2, 2)); quadScene.add(quad);
+  var VS = "varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy,0.,1.); }";
+  var downMat = new T.ShaderMaterial({ uniforms: { tSrc: { value: null }, uTexel: { value: new T.Vector2() } }, vertexShader: VS, depthTest: false, depthWrite: false,
+    fragmentShader: "uniform sampler2D tSrc; uniform vec2 uTexel; varying vec2 vUv; void main(){ vec3 c = texture2D(tSrc,vUv+uTexel*vec2(-1.,-1.)).rgb+texture2D(tSrc,vUv+uTexel*vec2(1.,-1.)).rgb+texture2D(tSrc,vUv+uTexel*vec2(-1.,1.)).rgb+texture2D(tSrc,vUv+uTexel*vec2(1.,1.)).rgb; gl_FragColor = vec4(c*.25,1.); }" });
+  var blurMat = new T.ShaderMaterial({ uniforms: { tSrc: { value: null }, uDir: { value: new T.Vector2() } }, vertexShader: VS, depthTest: false, depthWrite: false,
+    fragmentShader: "uniform sampler2D tSrc; uniform vec2 uDir; varying vec2 vUv; void main(){ vec3 c = texture2D(tSrc,vUv).rgb*.2270; c += (texture2D(tSrc,vUv+uDir*1.3846).rgb+texture2D(tSrc,vUv-uDir*1.3846).rgb)*.3162; c += (texture2D(tSrc,vUv+uDir*3.2308).rgb+texture2D(tSrc,vUv-uDir*3.2308).rgb)*.0703; gl_FragColor = vec4(c,1.); }" });
+  var compU = { tScene: { value: null }, tBlur: { value: null }, uSoft: { value: 0 }, uDof: { value: .55 }, uBloom: { value: .9 }, uThr: { value: .75 }, uExposure: { value: 1.05 }, uTime: { value: 0 }, uRes: { value: new T.Vector2(1, 1) }, uGrain: { value: .045 }, uVig: { value: .55 } };
+  var compMat = new T.ShaderMaterial({ uniforms: compU, vertexShader: VS, depthTest: false, depthWrite: false, fragmentShader: [
+    "uniform sampler2D tScene,tBlur; uniform float uSoft,uDof,uBloom,uThr,uExposure,uTime,uGrain,uVig; uniform vec2 uRes; varying vec2 vUv;",
+    "vec3 aces(vec3 x){ return clamp((x*(2.51*x+.03))/(x*(2.43*x+.59)+.14),0.,1.); }",
+    "void main(){",
+    " vec3 s = texture2D(tScene,vUv).rgb; vec3 b = texture2D(tBlur,vUv).rgb;",
+    " float edge = smoothstep(.35,1.,abs(vUv.y-.46)*2.);",
+    " vec3 c = mix(s, b, clamp(uSoft + edge*uDof, 0., 1.));",
+    " c += max(b - uThr, 0.) * uBloom;",
+    " c = aces(c * uExposure * .62);",
+    " c = pow(c, vec3(1./2.2));",
+    " vec2 q = vUv - .5; c *= mix(1., smoothstep(.95, .25, length(q*vec2(1.15,1.))), uVig);",
+    " float g = fract(sin(dot(vUv*uRes + fract(uTime)*97.13, vec2(12.9898,78.233)))*43758.5453);",
+    " c += (g - .5) * uGrain;",
+    " gl_FragColor = vec4(c, 1.);",
+    "}"].join("\n") });
+  function pass(mat, target) { quad.material = mat; renderer.setRenderTarget(target); renderer.render(quadScene, quadCam); }
+
+  /* ---------- camera: a sharp hero framing at the top, a slow soft drift everywhere else ---------- */
+  var hero = document.querySelector("[data-hero]"), eve = document.querySelector('[data-station="eve"]');
+  var duskEls = [].slice.call(document.querySelectorAll('[data-station="dusk"]'));
+  var HERO = mobile ? { pos: rot(V(3, 7, 54)), look: rot(V(0, 11, 0)) } : { pos: rot(V(4, 8.5, 50)), look: rot(V(-9.5, 9.5, 0)) };
+  var EVE = { pos: rot(V(-20, 26, 96)), look: rot(V(6, 7, -10)) };
   var tgtPos = V(0, 0, 0), tgtLook = V(0, 0, 0), curPos = V(0, 0, 0), curLook = V(0, 0, 0), tmpV = V(0, 0, 0);
-  var weights = { carousel: 0, rosette: 0, orbit: 0 }, duskT = 0, rightV = V(0, 0, 0), sideNow = 0;
-  function sideShift(v) {
-    if (mobile || !v) return;
-    rightV.copy(tgtLook).sub(tgtPos); var dist = rightV.length();
-    rightV.cross(up).normalize().multiplyScalar(v * dist * Math.tan(camera.fov * Math.PI / 360) * camera.aspect * .48);
-    tgtPos.add(rightV); tgtLook.add(rightV);
-  }
-  function sample(y) { var st = sample0(y); sideShift(sideNow); return st; }
-  function sample0(y) {
-    var a = anchors, ai = 0;
-    while (ai < a.length - 1 && y > a[ai].end && y >= a[ai + 1].start) ai++;
-    var A = a[ai], S = ST[A.st] || ST.tree;
-    if (y <= A.end || ai === a.length - 1) {
-      var hold = A.end > A.start ? clamp((y - A.start) / (A.end - A.start), 0, 1) : 0;
-      tgtPos.copy(S.pos); tgtLook.copy(S.look); tgtPos.x += (hold - .5) * 3; tgtPos.y += (hold - .5) * -1.6;
-      sideNow = A.side || 0; duskT = S.dusk; weights.carousel = S.carousel ? 1 : 0; weights.rosette = S.rosette ? 1 : 0; weights.orbit = S.orbit ? 1 : 0;
-      return A.st;
-    }
-    var B = a[ai + 1], SB = ST[B.st] || ST.tree, t = ease(clamp((y - A.end) / Math.max(1, B.start - A.end), 0, 1));
-    tgtPos.copy(S.pos).lerp(SB.pos, t); tgtLook.copy(S.look).lerp(SB.look, t);
-    tgtPos.y += Math.sin(Math.PI * t) * Math.min(26, S.pos.distanceTo(SB.pos) * .22);
-    duskT = lerp(S.dusk, SB.dusk, t); sideNow = lerp(A.side || 0, B.side || 0, t);
-    weights.carousel = lerp(S.carousel ? 1 : 0, SB.carousel ? 1 : 0, t); weights.rosette = lerp(S.rosette ? 1 : 0, SB.rosette ? 1 : 0, t); weights.orbit = lerp(S.orbit ? 1 : 0, SB.orbit ? 1 : 0, t);
-    return t < .5 ? A.st : B.st;
+  var sharpNow = 0, softTarget = 1;
+  function inView(el) { var r = el.getBoundingClientRect(); return clamp(Math.min(r.bottom, innerHeight) - Math.max(r.top, 0), 0, innerHeight) / innerHeight; }
+  function frameFor(t) {
+    var sharp = 0, base = null;
+    if (hero) { var r = hero.getBoundingClientRect(); sharp = clamp((r.bottom - innerHeight * .45) / (innerHeight * .55), 0, 1); base = HERO; }
+    else if (eve) { var r2 = eve.getBoundingClientRect(); sharp = clamp((r2.bottom - innerHeight * .35) / (innerHeight * .5), 0, 1); base = EVE; }
+    var duskV = 0; duskEls.forEach(function (el) { duskV = Math.max(duskV, inView(el)); });
+    // drift: a slow circle around the hill, nudged by scroll
+    var a = VIEW_AZ + Math.PI + Math.sin(t * .02) * .35 + scrollY * .00012, R = mobile ? 66 : 60;
+    var dPos = V(TREE.x + Math.cos(a) * R, TREE.y + 13 + Math.sin(t * .05) * 1.5, TREE.z + Math.sin(a) * R), dLook = V(TREE.x, TREE.y + 8, TREE.z);
+    if (base) { tgtPos.copy(dPos).lerp(V(TREE.x, TREE.y, TREE.z).add(base.pos), sharp); tgtLook.copy(dLook).lerp(V(TREE.x, TREE.y, TREE.z).add(base.look), sharp); }
+    else { tgtPos.copy(dPos); tgtLook.copy(dLook); }
+    sharpNow = sharp;
+    softTarget = clamp(1 - Math.max(sharp, duskV * .55), 0, 1);
   }
 
-  /* ---------- seasons ---------- */
+  /* ---------- seasons (home hero) ---------- */
   var SEASON_NAMES = ["Spring", "Summer", "Autumn", "Winter"];
   function realSeason() { var mo = new Date().getMonth(); return mo >= 8 && mo <= 10 ? 0 : (mo === 11 || mo <= 1) ? 1 : (mo >= 2 && mo <= 4) ? 2 : 3; }
   var season0 = realSeason(), season = season0, seasonShown = -1;
-  var seasonBtns = [].slice.call(document.querySelectorAll("button[data-season]"));
-  var seasonFill = document.querySelector("[data-season-fill]");
+  var seasonBtns = [].slice.call(document.querySelectorAll("button[data-season]")), seasonFill = document.querySelector("[data-season-fill]");
   function heroProgress() { if (!hero) return 0; var r = hero.getBoundingClientRect(), span = r.height - innerHeight; return span > 0 ? clamp(-r.top / span, 0, 1) : 0; }
   seasonBtns.forEach(function (b) {
     b.addEventListener("click", function () {
@@ -671,79 +426,61 @@
     seasonBtns.forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.season === name.toLowerCase())); });
   }
 
-  /* ---------- pointer: gusts, orbit drag, marquee spin, hover ---------- */
-  var pointer = new T.Vector2(), pNorm = new T.Vector2(), lastPX = null, lastPY = null, gust = new T.Vector2(), hasPointer = false;
-  var dragging = false, dragX = 0, dragY = 0, orbitYaw = 0, orbitPitch = 0, yawV = 0, carouselA = 0, carouselV = 0, dragMoved = 0;
-  var finePtr = matchMedia("(hover: hover) and (pointer: fine)").matches;
-  var ray = new T.Raycaster(), hoverCard = null, tip = finePtr ? document.getElementById("world-tip") : null;
-  function isEmpty(el) { return !el || !el.closest || !el.closest("a,button,input,select,textarea,label,form,.panel,.cover,.tag,.site-head,.concept-bar,dialog,[data-solid],.entry-card,.member,.win,.details-card,.gate,.pitch-head,.svc,.story,.rules,.sheet,.filters,.care-card,.manifesto-pull,.membership-art,.feature-table"); }
+  /* ---------- pointer: gusts and orbit drag on the hero ---------- */
+  var pointer = new T.Vector2(), lastPX = null, lastPY = null, gust = new T.Vector2();
+  var dragging = false, dragX = 0, orbitYaw = 0, yawV = 0;
+  function isEmpty(el) { return !el || !el.closest || !el.closest("a,button,input,select,textarea,label,form,.site-head,.concept-bar,dialog,.hero-copy,.strip,.entry-card,.member,.win,.pitch-head"); }
   window.addEventListener("pointermove", function (e) {
-    pNorm.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
-    if (lastPX !== null && !reduce) { gust.x += clamp((e.clientX - lastPX) * .0007, -.04, .04); gust.y += clamp((e.clientY - lastPY) * .0004, -.025, .025); }
+    pointer.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+    if (lastPX !== null && !reduce) { gust.x += clamp((e.clientX - lastPX) * .0006, -.035, .035); gust.y += clamp((e.clientY - lastPY) * .0003, -.02, .02); }
     lastPX = e.clientX; lastPY = e.clientY;
-    if (dragging) {
-      var dx = e.clientX - dragX, dy = e.clientY - dragY; dragX = e.clientX; dragY = e.clientY; dragMoved += Math.abs(dx) + Math.abs(dy);
-      if (weights.carousel > .5) carouselV = dx * .0042; else { yawV = dx * .0042; orbitPitch = clamp(orbitPitch + dy * .002, -.2, .35); }
-    }
-    pointer.copy(pNorm); hasPointer = true;
-    document.body.classList.toggle("world-grab", isEmpty(document.elementFromPoint(e.clientX, e.clientY)) && (weights.orbit > .5 || weights.carousel > .5 || weights.rosette > .5));
-    if (tip) tip.style.transform = "translate(" + (e.clientX + 16) + "px," + (e.clientY + 18) + "px)";
+    if (dragging) { yawV = (e.clientX - dragX) * .004; dragX = e.clientX; }
+    document.body.classList.toggle("world-grab", sharpNow > .5 && isEmpty(document.elementFromPoint(e.clientX, e.clientY)));
   }, { passive: true });
-  window.addEventListener("pointerdown", function (e) { if (!isEmpty(e.target)) return; dragging = true; dragX = e.clientX; dragY = e.clientY; dragMoved = 0; document.body.classList.add("world-dragging"); });
-  window.addEventListener("pointercancel", function () { dragging = false; document.body.classList.remove("world-dragging"); });
-  window.addEventListener("pointerup", function (e) { if (!dragging) return; dragging = false; document.body.classList.remove("world-dragging"); if (dragMoved < 6) clickWorld(e); });
-  function clickWorld(e) {
-    ray.setFromCamera(pNorm.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1), camera);
-    if (weights.carousel > .3) { var hit = ray.intersectObjects(carousel.children, true)[0]; if (hit && hit.object.userData.card) { openEntry(hit.object.userData.card.userData.entry); return; } }
-    if (weights.rosette > .3 && ray.intersectObject(rosette, true).length) { rosSpinV += .35; return; }
-    gust.x += .07;
-  }
-  function openEntry(e) {
-    if (document.querySelector("[data-work]")) { document.dispatchEvent(new CustomEvent("hc:open-entry", { detail: e.slug })); return; }
-    var href = "work.html#" + e.slug; if (window.HCgo) window.HCgo(href); else location.href = href;
-  }
+  window.addEventListener("pointerdown", function (e) { if (sharpNow > .5 && isEmpty(e.target)) { dragging = true; dragX = e.clientX; document.body.classList.add("world-dragging"); } });
+  function endDrag() { dragging = false; document.body.classList.remove("world-dragging"); }
+  window.addEventListener("pointerup", endDrag); window.addEventListener("pointercancel", endDrag);
 
   /* ---------- resize ---------- */
   var W = 0, H = 0;
   function resize() {
     var w = innerWidth, hh = innerHeight;
     if (Math.abs(w - W) < 1 && Math.abs(hh - H) < 140 && W) return;
-    W = w; H = hh; renderer.setSize(w, hh, false);
-    camera.aspect = w / hh; camera.fov = w < 700 ? 50 : 40; camera.updateProjectionMatrix();
-    measure();
+    W = w; H = hh; renderer.setPixelRatio(DPR); renderer.setSize(w, hh, false);
+    camera.aspect = w / hh; camera.fov = w < 700 ? 48 : 38; camera.updateProjectionMatrix();
+    var bw = Math.floor(w * DPR * renderScale), bh = Math.floor(hh * DPR * renderScale);
+    rtScene.setSize(bw, bh); rtA.setSize(Math.max(2, bw >> 2), Math.max(2, bh >> 2)); rtB.setSize(Math.max(2, bw >> 2), Math.max(2, bh >> 2));
+    compU.uRes.value.set(bw, bh);
   }
-  window.addEventListener("resize", resize); window.addEventListener("load", measure);
-  resize();
+  window.addEventListener("resize", resize); resize();
 
-  /* ---------- arrival: fly in from the page we came from ---------- */
-  var from = null; try { from = sessionStorage.getItem("hc-station"); } catch (e) {}
-  sample(scrollY);
-  if (from && ST[from] && !reduce) { curPos.copy(ST[from].pos); curLook.copy(ST[from].look); }
-  else { curPos.copy(tgtPos).add(V(0, reduce ? 0 : 14, reduce ? 0 : 22)); curLook.copy(tgtLook); }
+  /* ---------- arrival: the camera settles in from above ---------- */
+  frameFor(0);
+  curPos.copy(tgtPos).add(reduce ? V(0, 0, 0) : V(0, 10, 0).add(rot(V(0, 0, 26)))); curLook.copy(tgtLook);
   var arrive = reduce ? 0 : 1;
-  window.HCstation = function () { return sample(scrollY); };
+  window.HCstation = function () { return "drift"; };
 
-  /* ---------- loop ---------- */
+  /* ---------- adaptive quality: weak machines step down early ---------- */
   var perfFrames = 0, perfTime = 0, perfLevel = 0;
   function degrade() {
     perfLevel++;
-    if (perfLevel === 1) { sun.castShadow = false; renderer.shadowMap.enabled = false; grassMeshes.forEach(function (g) { g.count = Math.floor(g.userData.full * .5); }); renderer.setPixelRatio(Math.min(.9, DPR)); W = 0; resize(); }
-    if (perfLevel === 2) { grassMeshes.forEach(function (g) { g.count = Math.floor(g.userData.full * .15); }); leaves.count = Math.floor(LN * .65); renderer.setPixelRatio(.7); W = 0; resize(); }
-    doc.setAttribute("data-world-quality", String(2 - perfLevel));
+    if (perfLevel === 1) { sun.castShadow = false; renderer.shadowMap.enabled = false; grass.count = Math.floor(grass.userData.full * .5); renderScale = .8; }
+    if (perfLevel === 2) { grass.count = Math.floor(grass.userData.full * .15); leaves.count = Math.floor(LN * .65); renderScale = .62; compU.uGrain.value = .03; }
+    W = 0; resize(); doc.setAttribute("data-world-quality", String(2 - perfLevel));
   }
-  var running = true, last = 0, prevStation = "", sunDay = V(.45, .55, .35).normalize(), sunDusk = V(-.75, .07, -.25).normalize();
-  var fogDay = new T.Color(.74, .82, .9).convertSRGBToLinear(), fogDusk = new T.Color(.62, .4, .38).convertSRGBToLinear(), fogWinter = new T.Color(.82, .85, .88).convertSRGBToLinear();
-  var hemiSky = col("#cfe3f5"), hemiDusk = col("#5a3a5a"), sunCol = col("#fff1dc"), sunColDusk = col("#ff9a5a");
+
+  /* ---------- loop ---------- */
+  var running = true, last = 0, softNow = 1, lastVeil = -1;
   document.addEventListener("visibilitychange", function () { running = !document.hidden; if (running) requestAnimationFrame(frame); });
   function frame(now) {
     if (!running) return;
     requestAnimationFrame(frame);
     var rawDt = (now - last) / 1000 || .016, dt = Math.min(.05, rawDt); last = now;
-    if (perfLevel < 2 && rawDt < 1) { perfFrames++; perfTime += rawDt; if (perfFrames >= 45) { if (perfFrames / perfTime < 40) degrade(); perfFrames = 0; perfTime = 0; } }
+    if (perfLevel < 2 && rawDt < 1 && revealed) { perfFrames++; perfTime += rawDt; if (perfFrames >= 45) { if (perfFrames / perfTime < 40) degrade(); perfFrames = 0; perfTime = 0; } }
     var t = reduce ? 0 : clock.getElapsedTime();
-    U.uTime.value = t; skyU.uTime.value = t;
+    U.uTime.value = t; compU.uTime.value = t;
 
-    // seasons: the hero turns the year; past it, the year rolls back into spring
+    // seasons: the hero turns the year; past it the year rolls back into spring
     var hp = heroProgress();
     season = hero ? season0 + hp * 3 : season0;
     if (hero && hp >= 1) { var hr = hero.getBoundingClientRect(), after = innerHeight - hr.bottom, rest = document.documentElement.scrollHeight - (hr.bottom + scrollY); season = season0 + 3 + smooth(0, .22, after / Math.max(1, rest)); }
@@ -751,50 +488,36 @@
     var sv = ((season % 4) + 4) % 4;
     U.uDrop.value = sv < 2 ? 0 : sv < 2.7 ? (sv - 2) / .7 * .45 : sv < 3 ? .45 + (sv - 2.7) / .3 * .53 : sv < 3.6 ? .98 : Math.max(0, .98 - (sv - 3.6) * 2.45);
     var frost = sv > 2.8 && sv < 3.75 ? smooth(2.8, 3.05, sv) * (1 - smooth(3.55, 3.75, sv)) : 0;
-    U.uFrost.value = frost; skyU.uWinter.value = frost;
-    var autumn = sv > 1.8 && sv < 3 ? 1 : 0;
-    terrainMat.emissive.setRGB(frost * .26, frost * .28, frost * .31);
-    terrainMat.color.setRGB(1 + autumn * .1, 1 - autumn * .03, 1 - autumn * .18);
+    U.uFrost.value = frost;
+    terrainMat.color.setRGB(1 + frost * .55, 1 + frost * .6, 1 + frost * .75);
     updateSeasonUI(season);
 
-    // wind
     gust.multiplyScalar(.95);
     U.uWind.value.set(Math.sin(t * .3) * .035 + gust.x, Math.cos(t * .23) * .02 + gust.y);
 
     // camera
-    var st = sample(scrollY);
-    if (st !== prevStation) { prevStation = st; try { sessionStorage.setItem("hc-station", st); } catch (e) {} }
-    yawV *= .92; orbitYaw += yawV; if (weights.orbit < .5 && !dragging) orbitYaw *= .97;
-    if (!dragging) orbitPitch *= .97;
-    var yaw = reduce ? 0 : orbitYaw + Math.sin(t * .11) * .06 * weights.orbit;
-    tmpV.copy(tgtPos).sub(tgtLook); tmpV.applyAxisAngle(up, yaw); tmpV.y += orbitPitch * tmpV.length();
-    tgtPos.copy(tgtLook).add(tmpV);
-    tgtLook.x += pointer.x * 1.2; tgtLook.y += pointer.y * .7;
-    var kf = reduce || snapCam ? 1 : 1 - Math.exp(-dt * (arrive > 0 ? 1.15 : 3.2));
-    if (arrive > 0) arrive = Math.max(0, arrive - dt * .45);
+    frameFor(t);
+    yawV *= .92; orbitYaw += yawV; if (!dragging) orbitYaw *= (sharpNow > .5 ? .995 : .96);
+    tmpV.copy(tgtPos).sub(tgtLook).applyAxisAngle(up, reduce ? 0 : orbitYaw * sharpNow); tgtPos.copy(tgtLook).add(tmpV);
+    tgtLook.x += pointer.x * .9 * sharpNow; tgtLook.y += pointer.y * .5 * sharpNow;
+    var kf = reduce || snapCam ? 1 : 1 - Math.exp(-dt * (arrive > 0 ? 1.0 : 2.6));
+    if (arrive > 0) arrive = Math.max(0, arrive - dt * .4);
     curPos.lerp(tgtPos, kf); curLook.lerp(tgtLook, kf);
     camera.position.copy(curPos); camera.lookAt(curLook);
-
-    // light: day to dusk; the sun follows the view so shadows stay crisp where we look
-    var dk = lerp(skyU.uDusk.value, duskT, reduce ? 1 : 1 - Math.exp(-dt * 2.5)); skyU.uDusk.value = dk;
-    sunDir.copy(sunDay).lerp(sunDusk, smooth(.2, 1, dk)).normalize();
+    softNow = lerp(softNow, softTarget, reduce || snapCam ? 1 : 1 - Math.exp(-dt * 3));
+    compU.uSoft.value = softNow;
+    if (Math.abs(softNow - lastVeil) > .01) { lastVeil = softNow; doc.style.setProperty("--veil", softNow.toFixed(3)); }
     sun.position.copy(curLook).addScaledVector(sunDir, 120); sun.target.position.copy(curLook); sun.target.updateMatrixWorld();
-    sun.intensity = lerp(2.1, .55, smooth(0, 1, dk)); sun.color.copy(sunCol).lerp(sunColDusk, smooth(.1, .9, dk));
-    hemi.intensity = lerp(.55, .22, dk); hemi.color.copy(hemiSky).lerp(hemiDusk, dk);
-    renderer.toneMappingExposure = lerp(1, .82, dk);
-    scene.fog.color.copy(fogDay).lerp(fogWinter, frost * .7).lerp(fogDusk, dk);
-    starMat.opacity = smooth(.6, 1, dk); ffMat.opacity = smooth(.55, 1, dk) * (.7 + .3 * Math.sin(t * 3));
-    winMat.emissiveIntensity = smooth(.25, .8, dk) * 2.6; roofMat.emissiveIntensity = smooth(.4, 1, dk) * .9;
 
-    // birds and bunting
+    // life
+    ffMat.opacity = .75 + .25 * Math.sin(t * 3);
+    for (var qq = 0; qq < ffN; qq++) { var fb = ffBase[qq]; ffPos[qq * 3] = fb[0] + Math.sin(t * .5 + fb[3]) * 1.6; ffPos[qq * 3 + 1] = fb[1] + Math.sin(t * .9 + fb[3] * 2) * .9; ffPos[qq * 3 + 2] = fb[2] + Math.cos(t * .4 + fb[3]) * 1.6; }
+    ffGeo.attributes.position.needsUpdate = true;
     for (var b = 0; b < birds.length; b++) {
       var bdd = birds[b], u = bdd.userData; u.a += u.sp * dt;
-      bdd.position.set(Math.cos(u.a) * u.r - 10, u.y + Math.sin(t * .8 + u.ph) * 1.5, Math.sin(u.a) * u.r - 40); bdd.rotation.y = -u.a;
-      var flp = Math.sin(t * 9 + u.ph) * .5, bpos = bdd.geometry.attributes.position; bpos.setY(1, flp); bpos.setY(4, flp); bpos.needsUpdate = true; bdd.visible = dk < .8;
+      bdd.position.set(TREE.x + Math.cos(u.a) * u.r, u.y + Math.sin(t * .8 + u.ph) * 1.5, TREE.z + Math.sin(u.a) * u.r); bdd.rotation.y = -u.a;
+      var flp = Math.sin(t * 9 + u.ph) * .5, bpos = bdd.geometry.attributes.position; bpos.setY(1, flp); bpos.setY(4, flp); bpos.needsUpdate = true;
     }
-    for (var f = 0; f < bunting.length; f++) bunting[f].rotation.x = Math.sin(t * 2.4 + bunting[f].userData.ph) * .3 + U.uWind.value.x * 3;
-
-    // falling leaves tumble; snow drifts around the view
     if (FN) {
       var rate = sv < 1.8 ? .8 : sv < 2.8 ? 22 : sv < 3.2 ? 6 : 0;
       spawnAcc += rate * dt; while (spawnAcc > 1) { spawnAcc--; spawnLeaf(sv); }
@@ -805,49 +528,31 @@
         if (fs.p.y < hgt(fs.p.x, fs.p.z) + .05) { fs.alive = false; m4.makeScale(0, 0, 0); falling.setMatrixAt(p, m4); continue; }
         e3.set(fs.r.x, fs.r.y, fs.r.z); q4.setFromEuler(e3); s3.set(.9, .9, .9); m4.compose(fs.p, q4, s3); falling.setMatrixAt(p, m4);
       }
-      s3.set(1, 1, 1);
-      falling.instanceMatrix.needsUpdate = true; falling.instanceColor.needsUpdate = true;
+      s3.set(1, 1, 1); falling.instanceMatrix.needsUpdate = true; falling.instanceColor.needsUpdate = true;
     }
     if (SN) {
       snowMat.opacity = Math.min(1, frost * 1.2);
       if (frost > .01) {
         snow.position.copy(curPos).lerp(curLook, .32); snow.position.y -= 14;
-        for (var q = 0; q < SN; q++) { snowPos[q * 3 + 1] -= snowVel[q] * dt * 2.2; snowPos[q * 3] += (U.uWind.value.x * 20 + Math.sin(t + q) * .3) * dt; if (snowPos[q * 3 + 1] < 0) snowPos[q * 3 + 1] += 40; }
+        for (var q = 0; q < SN; q++) { snowPos[q * 3 + 1] -= snowVel[q] * dt * 2.2; snowPos[q * 3] += (U.uWind.value.x * 20 + Math.sin(t + q) * .3) * dt; if (snowPos[q * 3 + 1] < 0) snowPos[q * 3 + 1] += 34; }
         snowGeo.attributes.position.needsUpdate = true;
       }
     }
-    if (dk > .4) {
-      for (var qq = 0; qq < ffN; qq++) { var fb = ffBase[qq]; ffPos[qq * 3] = fb[0] + Math.sin(t * .5 + fb[3]) * 1.6; ffPos[qq * 3 + 1] = fb[1] + Math.sin(t * .9 + fb[3] * 2) * .9; ffPos[qq * 3 + 2] = fb[2] + Math.cos(t * .4 + fb[3]) * 1.6; }
-      ffGeo.attributes.position.needsUpdate = true;
-    }
 
-    // marquee carousel
-    carouselV *= .94; carouselA += carouselV + (dragging || reduce ? 0 : .0014 * weights.carousel + .0003);
-    carousel.rotation.y = carouselA;
-    var hovered = null;
-    if (weights.carousel > .4 && !dragging && finePtr && hasPointer) { ray.setFromCamera(pointer, camera); var hh = ray.intersectObjects(carousel.children, true)[0]; if (hh && hh.object.userData.card) hovered = hh.object.userData.card; }
-    if (hovered !== hoverCard) {
-      if (hovered) hovered.userData.sv += .06;
-      hoverCard = hovered;
-      if (tip) { if (hovered) { tip.textContent = hovered.userData.entry.title + " · view entry"; tip.classList.add("on"); } else tip.classList.remove("on"); }
-      document.body.classList.toggle("world-point", !!hovered);
+    // render: scene → downsample → blur ×2 → composite
+    renderer.setRenderTarget(rtScene); renderer.render(scene, camera);
+    downMat.uniforms.tSrc.value = rtScene.texture; downMat.uniforms.uTexel.value.set(1 / rtScene.width, 1 / rtScene.height); pass(downMat, rtA);
+    var iters = softNow > .5 ? 3 : 2;
+    for (var it = 0; it < iters; it++) {
+      blurMat.uniforms.tSrc.value = rtA.texture; blurMat.uniforms.uDir.value.set(1 / rtA.width, 0); pass(blurMat, rtB);
+      blurMat.uniforms.tSrc.value = rtB.texture; blurMat.uniforms.uDir.value.set(0, 1 / rtB.height); pass(blurMat, rtA);
     }
-    for (var cI = 0; cI < cards.length; cI++) {
-      var cd = cards[cI].userData;
-      cd.sv += -cd.swing * .05 - cd.sv * .06; cd.swing += cd.sv; cd.lift = lerp(cd.lift, cards[cI] === hoverCard ? 1 : 0, .12);
-      cards[cI].rotation.z = cd.swing + (reduce ? 0 : Math.sin(t * 1.1 + cd.i) * .02); cards[cI].position.z = cd.lift * .9; cards[cI].scale.setScalar(1 + cd.lift * .08);
-    }
+    compU.tScene.value = rtScene.texture; compU.tBlur.value = rtA.texture; compU.uDof.value = .5 * (1 - softNow);
+    pass(compMat, null);
 
-    // rosette
-    rosSpinV *= .97; rosSpin += rosSpinV; rosInner.rotation.z = rosSpin;
-    rosette.rotation.y = (reduce ? 0 : Math.sin(t * .5) * .25) + pointer.x * .35 * weights.rosette;
-    rosette.rotation.x = -pointer.y * .2 * weights.rosette;
-    rosette.position.y = ROS.y + 7.5 + (reduce ? 0 : Math.sin(t * .9) * .25);
-
-    renderer.render(scene, camera);
+    if (!revealed && pending <= 0 && ++framesDrawn > 2) reveal();
   }
-  window.addEventListener("scroll", function () { if (!anchors.length) measure(); if (tip) tip.classList.remove("on"); }, { passive: true });
-  if (window.ResizeObserver) new ResizeObserver(function () { measure(); }).observe(document.body);
+  if (window.ResizeObserver) new ResizeObserver(function () { /* layout changes need no world work */ }).observe(document.body);
   requestAnimationFrame(frame);
   doc.classList.add("world-ready");
 })();

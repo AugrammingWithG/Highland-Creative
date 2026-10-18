@@ -71,7 +71,7 @@ html:not(.webgl) .hero-stage { position: relative; height: auto; padding-block: 
 .studio .panel .section-intro { color: var(--ink-soft); }
 .webgl .studio .team { margin-top: 2.5rem; }
 .webgl .manifesto-pull { background: var(--manila); padding: clamp(1.5rem, 3vw, 2.5rem); box-shadow: 0 30px 60px -30px rgb(31 26 30 / .55); }
-.webgl .gate { background: linear-gradient(to bottom, rgb(52 16 42 / 0), rgb(52 16 42 / .5) 26%, rgb(52 16 42 / .93) 48%); padding-top: 42vh; }
+.webgl .gate { background: linear-gradient(to bottom, rgb(31 26 30 / 0), rgb(31 26 30 / .5) 26%, rgb(31 26 30 / .93) 48%); padding-top: 42vh; }
 .gate .night-line { margin: 0 0 2.5rem; font: 400 clamp(1.6rem, 1rem + 2.4vw, 3rem)/1.1 var(--f-display); color: var(--manila-light); max-width: 18ch; text-shadow: 0 2px 20px rgb(0 0 0 / .45); }
 .no-webgl .gate .night-line { display: none; }
 
@@ -104,7 +104,7 @@ html:not(.webgl) .hero-stage { position: relative; height: auto; padding-block: 
 .webgl .help > .wrap, .webgl .tryit > .wrap { background: var(--paper); padding: clamp(1.5rem, 4vw, 3.5rem); box-shadow: 0 40px 70px -30px rgb(31 26 30 / .55); }
 .webgl .tryit > .wrap { background: var(--manila); }
 .webgl .help, .webgl .tryit { padding-block: 18vh; }
-.pitch-end { position: relative; z-index: 2; padding: 40vh 0 3rem; color: var(--on-plum); background: linear-gradient(to bottom, rgb(52 16 42 / 0), rgb(52 16 42 / .9) 60%); }
+.pitch-end { position: relative; z-index: 2; padding: 40vh 0 3rem; color: var(--on-plum); background: linear-gradient(to bottom, rgb(31 26 30 / 0), rgb(31 26 30 / .9) 60%); }
 .pitch-end p { margin: 0; font: 400 clamp(1.6rem, 1rem + 2.2vw, 2.8rem)/1.15 var(--f-display); color: var(--manila-light); max-width: 20ch; text-shadow: 0 2px 20px rgb(0 0 0 / .45); }
 .pitch-end small { display: block; margin-top: 1.5rem; font-size: .9rem; color: var(--on-plum-soft); }
 .no-webgl .pitch-end { padding-top: 4rem; background: var(--plum-night); }
@@ -320,3 +320,82 @@ html:not(.webgl) .enter { background: var(--plum-night); }
 
 /* tints always span the full window, even on sections that are a centred .wrap, so no hard side edge */
 .webgl main > *:not(.hero)::before { left: calc(50% - 50vw); right: calc(50% - 50vw); }
+
+/* =====================================================================
+   ONE SCENE (revision 4): a single continuous veil instead of section
+   tints, a loader, scroll snapping, the gallery strip, centred judges.
+   ===================================================================== */
+.webgl main > *:not(.hero)::before { display: none !important; }
+.veil { position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: var(--veil, 1);
+  background: linear-gradient(90deg, rgb(20 8 18 / .66) 0%, rgb(20 8 18 / .42) 52%, rgb(20 8 18 / .52) 100%); }
+html:not(.webgl) .veil { display: none; }
+@media (max-width: 760px) { .veil { background: rgb(20 8 18 / .55); } }
+
+/* loader */
+.loader { display: none; }
+html.loading .loader { position: fixed; inset: 0; z-index: 500; display: grid; place-items: center; background: #1b0d17; transition: opacity .9s ease .15s, visibility 0s 1.1s; }
+html.world-loaded .loader, html.no-webgl .loader { opacity: 0; visibility: hidden; }
+.loader-in { display: grid; justify-items: center; gap: 1.1rem; }
+.loader img { width: min(240px, 60vw); height: auto; filter: brightness(0) invert(1); opacity: .92; }
+.loader span { font: 700 .95rem/1 var(--f-label); text-transform: uppercase; letter-spacing: .16em; color: var(--manila); }
+.loader .loader-tcs { font: 400 clamp(1.4rem, 1rem + 1.5vw, 2rem)/1 var(--f-display); text-transform: none; letter-spacing: 0; color: var(--paper); }
+.loader i { width: 160px; height: 2px; background: rgb(227 194 124 / .2); position: relative; overflow: hidden; }
+.loader i::after { content: ""; position: absolute; inset: 0; background: var(--manila); transform-origin: left; transform: scaleX(0); animation: load 2.6s cubic-bezier(.2,.7,.2,1) forwards; }
+@keyframes load { to { transform: scaleX(.92); } }
+
+/* scroll snapping between sections (proximity, so free scrolling still feels natural) */
+html { scroll-snap-type: y proximity; }
+main > section, main > .wrap, main > div, .gate, .pitch-end { scroll-snap-align: start; }
+
+/* gallery strip */
+.gallery-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1.5rem 3rem; }
+.gallery-head .section-intro { max-width: 42ch; }
+.strip { list-style: none; display: flex !important; gap: clamp(1rem, 2.4vw, 2rem); overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory;
+  margin-top: 2.5rem !important; padding: .5rem max(var(--gutter), calc((100vw - var(--wrap)) / 2)) 1.5rem; scroll-padding-inline: max(var(--gutter), calc((100vw - var(--wrap)) / 2));
+  cursor: grab; scrollbar-width: thin; scrollbar-color: var(--manila) transparent; }
+.strip.dragging { cursor: grabbing; scroll-snap-type: none; }
+.strip .entry-card, .strip .entry-card:nth-child(n) { flex: 0 0 clamp(270px, 34vw, 520px); grid-column: auto; grid-row: auto; scroll-snap-align: start; }
+.strip .entry-card a, .strip .entry-card:nth-child(n) a { display: block; padding: 0 !important; transform: none; }
+.strip .entry-card .shot, .strip .entry-card:nth-child(1) .shot { aspect-ratio: 4 / 3; height: auto; min-height: 0; border-radius: 3px; overflow: hidden; box-shadow: 0 30px 50px -28px rgb(0 0 0 / .8); }
+.strip .entry-card h3, .strip .entry-card:nth-child(1) h3 { font-size: clamp(1.1rem, 1rem + .4vw, 1.4rem); margin-top: 1rem; }
+.strip .entry-card .meta { color: var(--manila); }
+.strip .mini-tag { display: block; top: -8px; right: 14px; }
+.strip img { pointer-events: none; -webkit-user-drag: none; user-select: none; }
+.strip .entry-card a:hover .shot img { transform: scale(1.04); }
+.zoomer { position: fixed; z-index: 450; object-fit: cover; background: #f2f2f2; transition: left .7s cubic-bezier(.7, 0, .2, 1), top .7s cubic-bezier(.7, 0, .2, 1), width .7s cubic-bezier(.7, 0, .2, 1), height .7s cubic-bezier(.7, 0, .2, 1); }
+.zoomer.contain { object-fit: contain; }
+.zoomer.go { left: 0 !important; top: 0 !important; width: 100vw !important; height: 100vh !important; }
+html:not(.webgl) .strip { padding-bottom: 2rem; }
+
+/* judges: centred quote and the clients' logos */
+.judges .wrap { display: block !important; max-width: 60rem; text-align: center; }
+.judges .judges-copy { margin: 0 auto; }
+.judges .judge-quote blockquote::before { margin-inline: auto; }
+.judges .judge-tabs { justify-content: center; }
+.clients { margin-top: clamp(3rem, 6vw, 5rem); }
+.clients h3 { font: 800 1rem/1.2 var(--f-label); text-transform: uppercase; letter-spacing: .12em; color: var(--plum); }
+.webgl .clients h3 { color: var(--manila); text-shadow: none; }
+.logos { list-style: none; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 2rem 3.25rem; margin-top: 1.6rem; }
+.logos img { height: 46px; width: auto; max-width: 150px; object-fit: contain; }
+.webgl .logos img { filter: brightness(0) invert(1); opacity: .85; }
+main > section.hero, main > .pitch-hero { scroll-snap-align: none; }
+.hero-copy h1 { font-size: min(clamp(2.8rem, 1.5rem + 4.1vw, 5.4rem), 9vh); }
+.hero-copy .lede { margin-top: min(1.4rem, 2vh); }
+.hero-copy .cover-actions { margin-top: min(2rem, 3vh); }
+.hero-copy .season-dial { margin-top: min(1.8rem, 2.6vh); }
+
+.webgl .membership-art .screen { box-shadow: 0 30px 50px -28px rgb(0 0 0 / .7); }
+
+/* one scene: no more windows onto 3D stations; normal section rhythm everywhere except the hero */
+.webgl .page-cover { padding-bottom: clamp(3rem, 8vh, 6rem); }
+.webgl .about-team { padding-block: var(--sp-6); }
+.webgl .membership .membership-art { margin-top: 2rem; }
+.webgl .enter { padding-block: clamp(5rem, 12vh, 9rem); }
+.webgl .svc { margin-bottom: clamp(3rem, 8vh, 5rem); }
+@media (max-width: 760px) {
+  .webgl main > [data-station]:not([data-hero]):not(.page-cover), .webgl main > .wrap > [data-station], .webgl main .svc[data-station] { padding-top: clamp(3.5rem, 9vh, 5rem); }
+  .webgl main .svc[data-station] { background: none; }
+  .webgl .page-cover { padding-bottom: 2.5rem; }
+  .webgl .enter { padding-top: 4rem; }
+  .webgl .membership .membership-art { margin-top: 2rem; }
+}
