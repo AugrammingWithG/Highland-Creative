@@ -482,3 +482,6 @@ html:not(.webgl) .quote-field { display: none; }
 .webgl .schedule .wrap { align-items: stretch; }
 .webgl .schedule-aside { align-self: stretch; }
 .mq-item.is-logo.badge img { filter: drop-shadow(0 18px 22px rgb(0 0 0 / .45)); opacity: 1; }
+
+/* the boxed-era display:table on the quick-wins intro collapsed the spaces between split heading words */
+.webgl .wins > h2, .webgl .wins > .section-intro, .webgl .wins > .footnote { display: block; }
