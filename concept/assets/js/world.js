@@ -36,7 +36,7 @@
   if (T.ColorManagement) T.ColorManagement.legacyMode = false;
   renderer.outputEncoding = T.sRGBEncoding;
   renderer.toneMapping = T.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.05;
+  renderer.toneMappingExposure = 1;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = mobile ? T.PCFShadowMap : T.PCFSoftShadowMap;
 
@@ -144,7 +144,7 @@
   scene.fog = new T.FogExp2(0xbfd2e2, mobile ? .0062 : .0056);
 
   var hemi = new T.HemisphereLight(0xcfe3f5, 0x3b4a22, .55);
-  var sun = new T.DirectionalLight(0xfff1dc, 2.4);
+  var sun = new T.DirectionalLight(0xfff1dc, 2.1);
   sun.castShadow = true;
   sun.shadow.mapSize.set(mobile ? 1024 : 2048, mobile ? 1024 : 2048);
   var shc = sun.shadow.camera; shc.left = -38; shc.right = 38; shc.top = 38; shc.bottom = -38; shc.near = 1; shc.far = 260;
@@ -330,17 +330,17 @@
 
   /* ---------- the countryside: painted tree impostors on the far hills ---------- */
   function treeCard(kind) {
-    return canvasTex(256, 256, function (g, w, h) {
+    return canvasTex(512, 512, function (g, w, h) {
       g.clearRect(0, 0, w, h);
-      g.fillStyle = "#3a2f26"; g.fillRect(w / 2 - 5, h * .62, 10, h * .38);
+      g.fillStyle = "#3a2f26"; g.fillRect(w / 2 - 9, h * .6, 18, h * .4);
       var cx = w / 2, cy = kind === 1 ? h * .38 : h * .42, rx = kind === 1 ? w * .2 : kind === 2 ? w * .44 : w * .34, ry = kind === 1 ? h * .36 : kind === 2 ? h * .26 : h * .32;
       var greens = kind === 2 ? ["#3c5a24", "#4b6a2a", "#2f4a1c", "#5a7a34"] : ["#2d4a1f", "#3a5a26", "#24401a", "#4a6a2e"];
-      for (var i = 0; i < 1500; i++) {
+      for (var i = 0; i < 5200; i++) {
         var a = rand() * Math.PI * 2, r = Math.sqrt(rand()), x = cx + Math.cos(a) * rx * r, y = cy + Math.sin(a) * ry * r + (rand() - .5) * 6;
         var lit = clamp(.5 - (x - cx) / rx * .25 - (y - cy) / ry * .35 + (rand() - .5) * .3, 0, 1);
         var c = new T.Color(pick(greens)); c.offsetHSL(0, 0, (lit - .5) * .16);
         g.fillStyle = "#" + c.getHexString(); g.globalAlpha = .85;
-        g.beginPath(); g.ellipse(x, y, 3 + rand() * 5, 2 + rand() * 4, rand() * 3, 0, Math.PI * 2); g.fill();
+        g.globalAlpha = .55 + rand() * .4; g.beginPath(); g.ellipse(x, y, 4 + rand() * 9, 3 + rand() * 7, rand() * 3, 0, Math.PI * 2); g.fill();
       }
       g.globalAlpha = 1;
     });
@@ -358,8 +358,13 @@
       });
       var g = new T.BufferGeometry(); g.setAttribute("position", new T.Float32BufferAttribute(pos, 3)); g.setAttribute("normal", new T.Float32BufferAttribute(nor, 3)); g.setAttribute("uv", new T.Float32BufferAttribute(uv, 2)); g.setIndex(idx); return g;
     })();
-    var meshes = kinds.map(function (tex) { var mm = new T.InstancedMesh(cross, new T.MeshStandardMaterial({ map: tex, alphaTest: .5, side: T.DoubleSide, roughness: 1 }), N); mm.count = 0; mm.frustumCulled = false; scene.add(mm); return mm; });
-    var keepOut = [[0, 0, 30], [RIB.x, RIB.z, 26], [PAV.x, PAV.z, 26], [ROS.x, ROS.z, 22], [-10, -5, 12]], tries = 0, total = 0;
+    var meshes = kinds.map(function (tex) {
+      var mat = new T.MeshStandardMaterial({ map: tex, alphaTest: .4, alphaToCoverage: true, side: T.DoubleSide, roughness: 1 });
+      mat.onBeforeCompile = function (sh) { sh.fragmentShader = sh.fragmentShader.replace("#include <normal_fragment_begin>", "vec3 normal = normalize( vNormal ); vec3 geometryNormal = normal;"); };
+      var mm = new T.InstancedMesh(cross, mat, N); mm.count = 0; mm.frustumCulled = false; scene.add(mm); return mm;
+    });
+    var keepOut = [[0, 0, 30], [RIB.x, RIB.z, 26], [PAV.x, PAV.z, 26], [ROS.x, ROS.z, 22], [-10, -5, 12],
+      [5, 48, 42], [RIB.x, RIB.z + 27, 34], [PAV.x, PAV.z + 21, 32], [ROS.x, ROS.z + 18, 30], [-34, 104, 44], [15, 22, 30], [4, 32, 34], [14, 74, 36], [3, 52, 40]], tries = 0, total = 0;
     while (total < N * 3 && tries < N * 30) {
       tries++;
       var a = rand() * Math.PI * 2, r = 50 + rand() * 360, fx = Math.cos(a) * r, fz = Math.sin(a) * r - 40;
@@ -373,17 +378,17 @@
   })();
 
   /* ---------- falling leaves (tumbling) and snow ---------- */
-  var FN = reduce ? 0 : (mobile ? 90 : 240), SN = reduce ? 0 : (mobile ? 500 : 1400);
+  var FN = reduce ? 0 : (mobile ? 90 : 240), SN = reduce ? 0 : (mobile ? 900 : 2200);
   var fallMat = new T.MeshStandardMaterial({ map: leafTex, alphaTest: .45, side: T.DoubleSide, roughness: .75 });
   var falling = new T.InstancedMesh(leafGeo.clone(), fallMat, Math.max(FN, 1)); falling.frustumCulled = false; scene.add(falling);
   falling.instanceColor = new T.InstancedBufferAttribute(new Float32Array(Math.max(FN, 1) * 3).fill(1), 3);
   var fState = [];
   for (i = 0; i < Math.max(FN, 1); i++) { fState.push({ alive: false, p: V(0, 0, 0), v: V(0, 0, 0), r: V(0, 0, 0), rv: V(0, 0, 0), c: new T.Color() }); m4.makeScale(0, 0, 0); falling.setMatrixAt(i, m4); }
   var snowPos = new Float32Array(Math.max(SN, 1) * 3), snowVel = new Float32Array(Math.max(SN, 1));
-  for (i = 0; i < SN; i++) { snowPos[i * 3] = (rand() - .5) * 120; snowPos[i * 3 + 1] = rand() * 40; snowPos[i * 3 + 2] = (rand() - .5) * 120; snowVel[i] = 1 + rand() * 1.4; }
+  for (i = 0; i < SN; i++) { snowPos[i * 3] = (rand() - .5) * 70; snowPos[i * 3 + 1] = rand() * 34; snowPos[i * 3 + 2] = (rand() - .5) * 70; snowVel[i] = 1 + rand() * 1.4; }
   var snowGeo = new T.BufferGeometry(); snowGeo.setAttribute("position", new T.BufferAttribute(snowPos, 3));
   var softDot = canvasTex(32, 32, function (g) { var gr = g.createRadialGradient(16, 16, 0, 16, 16, 16); gr.addColorStop(0, "rgba(255,255,255,1)"); gr.addColorStop(.5, "rgba(255,255,255,.7)"); gr.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = gr; g.fillRect(0, 0, 32, 32); });
-  var snowMat = new T.PointsMaterial({ size: mobile ? .34 : .28, map: softDot, transparent: true, depthWrite: false, opacity: 0 });
+  var snowMat = new T.PointsMaterial({ size: mobile ? .7 : .55, map: softDot, transparent: true, depthWrite: false, opacity: 0, fog: false, color: 0xffffff });
   var snow = new T.Points(snowGeo, snowMat); snow.frustumCulled = false; scene.add(snow);
   var spawnAcc = 0;
   function spawnLeaf(sv) {
@@ -440,7 +445,7 @@
 
   /* ---------- the class ribbon field ---------- */
   var CLASSES = [["1", "Website design"], ["2", "Wild Apricot"], ["3", "Print & advertising"], ["4", "Branding"], ["5", "SEO & marketing"], ["6", "Copywriting"], ["7", "Care Plan"]];
-  var RCOL = ["#7a215c", "#48541a", "#2f6f93"];
+  var RCOL = ["#561540", "#3e4a16", "#2a5f7e"];
   var woodTex = canvasTex(128, 512, function (g, w, h) {
     g.fillStyle = "#8a6a45"; g.fillRect(0, 0, w, h);
     for (var i = 0; i < 160; i++) { g.strokeStyle = pick(["#6b4f31", "#a07c52", "#5a4129", "#b48d5e"]); g.globalAlpha = .25 + rand() * .4; g.lineWidth = .5 + rand() * 2; var x = rand() * w; g.beginPath(); g.moveTo(x, 0); g.bezierCurveTo(x + 6, h * .3, x - 6, h * .6, x + (rand() - .5) * 8, h); g.stroke(); }
@@ -479,7 +484,7 @@
       fl.position.copy(p2); fl.lookAt(p2.x, p2.y, p2.z + 10); fl.userData.ph = f * .7; fl.castShadow = true; group.add(fl); bunting.push(fl);
     }
   }
-  addBunting(ribbonField, V(-7.8, 8.3, -2.7), V(7.8, 8.3, -2.7), 1.1, 22, [0x7a215c, 0xe3c27c, 0x48541a, 0x2f6f93]);
+  addBunting(ribbonField, V(-7.8, 8.3, -2.7), V(7.8, 8.3, -2.7), 1.1, 22, [0x561540, 0xd9b670, 0x3e4a16, 0x2a5f7e]);
 
   /* ---------- the show marquee: striped canvas roof, timber floor, hanging entries ---------- */
   var pavilion = new T.Group(); pavilion.position.copy(PAV); scene.add(pavilion);
@@ -494,7 +499,7 @@
     var pa = pp / 8 * Math.PI * 2 + Math.PI / 8;
     var post2 = new T.Mesh(new T.CylinderGeometry(.2, .24, 7.4, 10), timberMat); post2.position.set(Math.cos(pa) * 11.6, 3.9, Math.sin(pa) * 11.6); post2.castShadow = true; pavilion.add(post2);
   }
-  var stripeTex = canvasTex(1024, 256, function (g, w, h) { for (var si = 0; si < 16; si++) { g.fillStyle = si % 2 ? "#f3ece0" : "#7a215c"; g.fillRect(si * w / 16, 0, w / 16 + 1, h); } g.fillStyle = "rgba(0,0,0,.06)"; for (si = 0; si < 300; si++) g.fillRect(rand() * w, rand() * h, 1, 4); });
+  var stripeTex = canvasTex(1024, 256, function (g, w, h) { for (var si = 0; si < 16; si++) { g.fillStyle = si % 2 ? "#ece4d6" : "#561540"; g.fillRect(si * w / 16, 0, w / 16 + 1, h); } g.fillStyle = "rgba(0,0,0,.06)"; for (si = 0; si < 300; si++) g.fillRect(rand() * w, rand() * h, 1, 4); });
   var roofMat = new T.MeshStandardMaterial({ map: stripeTex, roughness: .92, side: T.DoubleSide });
   var roof = new T.Mesh(new T.ConeGeometry(14.2, 4.8, 16, 1, true), roofMat); roof.position.y = 10; roof.castShadow = true; pavilion.add(roof);
   var valance = new T.Mesh(new T.CylinderGeometry(14.2, 14.2, 1.1, 32, 1, true), roofMat); valance.position.y = 7.1; pavilion.add(valance);
@@ -534,7 +539,7 @@
     frame.userData.card = card; img.userData.card = card; lab.userData.card = card;
     cards.push(card);
   });
-  addBunting(pavilion, V(-11.6, 7.4, 4.4), V(11.6, 7.4, 4.4), .9, 20, [0x7a215c, 0xe3c27c, 0x48541a, 0x2f6f93]);
+  addBunting(pavilion, V(-11.6, 7.4, 4.4), V(11.6, 7.4, 4.4), .9, 20, [0x561540, 0xd9b670, 0x3e4a16, 0x2a5f7e]);
 
   /* ---------- the judges' rosette: satin pleats ---------- */
   var rosette = new T.Group(); rosette.position.set(ROS.x, ROS.y + 7.5, ROS.z); scene.add(rosette);
@@ -543,7 +548,7 @@
     var geo = new T.PlaneGeometry(r1 - r0, (Math.PI * 2 * r1) / n * 1.18), mat = new T.MeshStandardMaterial({ color: color, roughness: .3, metalness: .12, side: T.DoubleSide });
     for (var kk = 0; kk < n; kk++) { var mm = new T.Mesh(geo, mat), a = kk / n * Math.PI * 2; mm.position.set(Math.cos(a) * (r0 + r1) / 2, Math.sin(a) * (r0 + r1) / 2, zz); mm.rotation.z = a; mm.rotateX(kk % 2 ? .55 : -.55); mm.castShadow = true; rosInner.add(mm); }
   }
-  pleatRing(2.4, 3.6, 72, 0x7a215c, 0);
+  pleatRing(2.4, 3.6, 72, 0x5a1744, 0);
   pleatRing(1.55, 2.5, 54, 0xd8b56e, .12);
   var rosCenter = new T.Mesh(new T.CircleGeometry(1.6, 64), new T.MeshStandardMaterial({ roughness: .6, metalness: .05, map: textTexture(512, 512, function (g, w, h) {
     var gr = g.createRadialGradient(w / 2, h / 2, 10, w / 2, h / 2, w / 2); gr.addColorStop(0, "#fbf8f0"); gr.addColorStop(1, "#e9e2d1"); g.fillStyle = gr; g.beginPath(); g.arc(w / 2, h / 2, w / 2, 0, Math.PI * 2); g.fill();
@@ -552,7 +557,7 @@
     g.font = "800 66px 'Sofia Sans Extra Condensed', sans-serif"; g.fillText("COMMENDED", w / 2, h / 2 + 72);
   }) }));
   rosCenter.position.z = .25; rosInner.add(rosCenter);
-  var tailTex = textTexture(64, 256, function (g, w, h) { g.fillStyle = "#7a215c"; g.fillRect(0, 0, w, h); var gr = g.createLinearGradient(0, 0, w, 0); gr.addColorStop(0, "rgba(0,0,0,.2)"); gr.addColorStop(.5, "rgba(255,255,255,.14)"); gr.addColorStop(1, "rgba(0,0,0,.2)"); g.fillStyle = gr; g.fillRect(0, 0, w, h); });
+  var tailTex = textTexture(64, 256, function (g, w, h) { g.fillStyle = "#561540"; g.fillRect(0, 0, w, h); var gr = g.createLinearGradient(0, 0, w, 0); gr.addColorStop(0, "rgba(0,0,0,.2)"); gr.addColorStop(.5, "rgba(255,255,255,.14)"); gr.addColorStop(1, "rgba(0,0,0,.2)"); g.fillStyle = gr; g.fillRect(0, 0, w, h); });
   [-1, 1].forEach(function (sgn, kk) {
     var tail = new T.Mesh(new T.PlaneGeometry(1.3, 6, 4, 30), clothMaterial(tailTex, kk * 2.1, { notch: true, rough: .3 }));
     tail.position.set(sgn * .9, -4.2, -.1); tail.rotation.z = sgn * .2; tail.castShadow = true; rosette.add(tail);
@@ -563,7 +568,7 @@
   var cottage = new T.Group(), CX = TREE.x - 10, CZ = TREE.z - 5; cottage.position.set(CX, hgt(CX, CZ) - .3, CZ); cottage.rotation.y = .5; scene.add(cottage);
   var boardTex = canvasTex(256, 256, function (g, w) { for (var bi = 0; bi < 16; bi++) { g.fillStyle = bi % 2 ? "#ece6d6" : "#e4ddcb"; g.fillRect(0, bi * 16, w, 16); g.fillStyle = "rgba(60,50,30,.25)"; g.fillRect(0, bi * 16 + 14, w, 2); } }, [2, 1.4]);
   var walls = new T.Mesh(new T.BoxGeometry(5, 3.2, 3.8), new T.MeshStandardMaterial({ map: boardTex, roughness: .85 })); walls.position.y = 1.6; walls.castShadow = walls.receiveShadow = true; cottage.add(walls);
-  var ironTex = canvasTex(256, 64, function (g, w, h) { for (var ii = 0; ii < 32; ii++) { var gr = g.createLinearGradient(ii * 8, 0, ii * 8 + 8, 0); gr.addColorStop(0, "#5e1a47"); gr.addColorStop(.5, "#8a2f6a"); gr.addColorStop(1, "#5e1a47"); g.fillStyle = gr; g.fillRect(ii * 8, 0, 8, h); } }, [3, 1]);
+  var ironTex = canvasTex(256, 64, function (g, w, h) { for (var ii = 0; ii < 32; ii++) { var gr = g.createLinearGradient(ii * 8, 0, ii * 8 + 8, 0); gr.addColorStop(0, "#40102f"); gr.addColorStop(.5, "#5e1846"); gr.addColorStop(1, "#40102f"); g.fillStyle = gr; g.fillRect(ii * 8, 0, 8, h); } }, [3, 1]);
   var roof2 = new T.Mesh(new T.ConeGeometry(3.9, 2.4, 4), new T.MeshStandardMaterial({ map: ironTex, metalness: .45, roughness: .45 })); roof2.position.y = 4.4; roof2.rotation.y = Math.PI / 4; roof2.scale.set(1.05, 1, .8); roof2.castShadow = true; cottage.add(roof2);
   var chimney = new T.Mesh(new T.BoxGeometry(.6, 1.6, .6), new T.MeshStandardMaterial({ color: 0x8a4a35, roughness: .95 })); chimney.position.set(1.4, 4.6, -.6); chimney.castShadow = true; cottage.add(chimney);
   var winMat = new T.MeshStandardMaterial({ color: 0x2c3036, roughness: .15, metalness: .3, emissive: 0xffc566, emissiveIntensity: 0 });
@@ -592,7 +597,7 @@
     tree: { pos: V(TREE.x + 5, TREE.y + 9, TREE.z + 48), look: V(TREE.x + heroLookX, TREE.y + 9.5, TREE.z), dusk: 0, orbit: true },
     ribbons: { pos: V(RIB.x, RIB.y + 6.4, RIB.z + (mobile ? 22 : 27)), look: V(RIB.x, RIB.y + 5, RIB.z), dusk: 0 },
     sky: { pos: V(14, 40, 74), look: V(-24, 76, -50), dusk: .08 },
-    pavilion: { pos: V(PAV.x, PAV.y + (mobile ? 5.6 : 4.6), PAV.z + (mobile ? 19 : 21)), look: V(PAV.x, PAV.y + (mobile ? 5.2 : 3.7), PAV.z), dusk: .05, carousel: true },
+    pavilion: { pos: V(PAV.x, PAV.y + (mobile ? 4.4 : 4.6), PAV.z + (mobile ? 25 : 21)), look: V(PAV.x, PAV.y + (mobile ? 4.6 : 3.7), PAV.z), dusk: .05, carousel: true },
     rosette: { pos: V(ROS.x, ROS.y + 7.2, ROS.z + 18), look: V(ROS.x, ROS.y + 7, ROS.z), dusk: .12, rosette: true },
     meadow: { pos: V(-34, 30, 104), look: V(4, 6, -10), dusk: .18 },
     studio: { pos: V(TREE.x + 15, TREE.y + 9, TREE.z + 22), look: V(TREE.x - 2, TREE.y + 8, TREE.z), dusk: .34 },
@@ -665,7 +670,7 @@
   }
 
   /* ---------- pointer: gusts, orbit drag, marquee spin, hover ---------- */
-  var pointer = new T.Vector2(), pNorm = new T.Vector2(), lastPX = null, lastPY = null, gust = new T.Vector2();
+  var pointer = new T.Vector2(), pNorm = new T.Vector2(), lastPX = null, lastPY = null, gust = new T.Vector2(), hasPointer = false;
   var dragging = false, dragX = 0, dragY = 0, orbitYaw = 0, orbitPitch = 0, yawV = 0, carouselA = 0, carouselV = 0, dragMoved = 0;
   var finePtr = matchMedia("(hover: hover) and (pointer: fine)").matches;
   var ray = new T.Raycaster(), hoverCard = null, tip = finePtr ? document.getElementById("world-tip") : null;
@@ -678,7 +683,7 @@
       var dx = e.clientX - dragX, dy = e.clientY - dragY; dragX = e.clientX; dragY = e.clientY; dragMoved += Math.abs(dx) + Math.abs(dy);
       if (weights.carousel > .5) carouselV = dx * .0042; else { yawV = dx * .0042; orbitPitch = clamp(orbitPitch + dy * .002, -.2, .35); }
     }
-    pointer.copy(pNorm);
+    pointer.copy(pNorm); hasPointer = true;
     document.body.classList.toggle("world-grab", isEmpty(document.elementFromPoint(e.clientX, e.clientY)) && (weights.orbit > .5 || weights.carousel > .5 || weights.rosette > .5));
     if (tip) tip.style.transform = "translate(" + (e.clientX + 16) + "px," + (e.clientY + 18) + "px)";
   }, { passive: true });
@@ -772,9 +777,9 @@
     var dk = lerp(skyU.uDusk.value, duskT, reduce ? 1 : 1 - Math.exp(-dt * 2.5)); skyU.uDusk.value = dk;
     sunDir.copy(sunDay).lerp(sunDusk, smooth(.2, 1, dk)).normalize();
     sun.position.copy(curLook).addScaledVector(sunDir, 120); sun.target.position.copy(curLook); sun.target.updateMatrixWorld();
-    sun.intensity = lerp(2.4, .55, smooth(0, 1, dk)); sun.color.copy(sunCol).lerp(sunColDusk, smooth(.1, .9, dk));
+    sun.intensity = lerp(2.1, .55, smooth(0, 1, dk)); sun.color.copy(sunCol).lerp(sunColDusk, smooth(.1, .9, dk));
     hemi.intensity = lerp(.55, .22, dk); hemi.color.copy(hemiSky).lerp(hemiDusk, dk);
-    renderer.toneMappingExposure = lerp(1.05, .82, dk);
+    renderer.toneMappingExposure = lerp(1, .82, dk);
     scene.fog.color.copy(fogDay).lerp(fogWinter, frost * .7).lerp(fogDusk, dk);
     starMat.opacity = smooth(.6, 1, dk); ffMat.opacity = smooth(.55, 1, dk) * (.7 + .3 * Math.sin(t * 3));
     winMat.emissiveIntensity = smooth(.25, .8, dk) * 2.2; glow.intensity = smooth(.3, .9, dk) * 1.8; lamp.intensity = lerp(.6, 1.6, dk);
@@ -802,9 +807,9 @@
       falling.instanceMatrix.needsUpdate = true; falling.instanceColor.needsUpdate = true;
     }
     if (SN) {
-      snowMat.opacity = frost * .95;
+      snowMat.opacity = Math.min(1, frost * 1.2);
       if (frost > .01) {
-        snow.position.set(curLook.x, curLook.y - 12, curLook.z);
+        snow.position.copy(curPos).lerp(curLook, .32); snow.position.y -= 14;
         for (var q = 0; q < SN; q++) { snowPos[q * 3 + 1] -= snowVel[q] * dt * 2.2; snowPos[q * 3] += (U.uWind.value.x * 20 + Math.sin(t + q) * .3) * dt; if (snowPos[q * 3 + 1] < 0) snowPos[q * 3 + 1] += 40; }
         snowGeo.attributes.position.needsUpdate = true;
       }
@@ -818,7 +823,7 @@
     carouselV *= .94; carouselA += carouselV + (dragging || reduce ? 0 : .0014 * weights.carousel + .0003);
     carousel.rotation.y = carouselA;
     var hovered = null;
-    if (weights.carousel > .4 && !dragging && finePtr) { ray.setFromCamera(pointer, camera); var hh = ray.intersectObjects(carousel.children, true)[0]; if (hh && hh.object.userData.card) hovered = hh.object.userData.card; }
+    if (weights.carousel > .4 && !dragging && finePtr && hasPointer) { ray.setFromCamera(pointer, camera); var hh = ray.intersectObjects(carousel.children, true)[0]; if (hh && hh.object.userData.card) hovered = hh.object.userData.card; }
     if (hovered !== hoverCard) {
       if (hovered) hovered.userData.sv += .06;
       hoverCard = hovered;
