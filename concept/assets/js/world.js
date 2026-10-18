@@ -28,7 +28,7 @@
   var mobile = matchMedia("(max-width: 760px), (pointer: coarse)").matches;
   var renderer;
   try {
-    renderer = new T.WebGLRenderer({ canvas: canvas, antialias: true, powerPreference: "high-performance" });
+    renderer = new T.WebGLRenderer({ canvas: canvas, antialias: !mobile, powerPreference: "high-performance" });
     if (!renderer.getContext()) throw new Error("no gl");
   } catch (e) { noGL(); return; }
   doc.classList.add("webgl");
@@ -38,12 +38,12 @@
   renderer.toneMapping = T.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1;
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = mobile ? T.PCFShadowMap : T.PCFSoftShadowMap;
+  renderer.shadowMap.type = T.PCFShadowMap;
 
   var BASE = canvas.getAttribute("data-base") || "../assets/hc/";
   var PAGE = document.body.getAttribute("data-world") || "home";
   var HC = window.HC || {};
-  var DPR = Math.min(window.devicePixelRatio || 1, mobile ? 1.35 : 1.6);
+  var DPR = Math.min(window.devicePixelRatio || 1, mobile ? 1 : 1.25);
   renderer.setPixelRatio(DPR);
   var maxAniso = renderer.capabilities.getMaxAnisotropy ? Math.min(8, renderer.capabilities.getMaxAnisotropy()) : 4;
 
@@ -100,7 +100,7 @@
   }
   PAV.y = hgt(PAV.x, PAV.z); RIB.y = hgt(RIB.x, RIB.z); ROS.y = hgt(ROS.x, ROS.z);
 
-  var tSeg = mobile ? 120 : 220;
+  var tSeg = mobile ? 90 : 150;
   var terrainGeo = new T.PlaneGeometry(900, 900, tSeg, tSeg); terrainGeo.rotateX(-Math.PI / 2);
   var tp = terrainGeo.attributes.position, tc = new Float32Array(tp.count * 3);
   var gDark = col("#2f4519"), gMid = col("#4f6a26"), gLight = col("#6f8433"), gDry = col("#8e8a45"), cTmp = new T.Color();
@@ -113,7 +113,7 @@
   terrainGeo.setAttribute("color", new T.BufferAttribute(tc, 3));
   terrainGeo.computeVertexNormals();
   var grassTex = canvasTex(512, 512, function (g, w, h) { speckle(g, w, h, "#9aa070", ["#5d6b35", "#c1c08a", "#7c8a45", "#4a5a2a", "#b3a865"], 9000); }, [140, 140]);
-  var terrainMat = new T.MeshStandardMaterial({ vertexColors: true, map: grassTex, roughness: 1, metalness: 0 });
+  var terrainMat = new T.MeshLambertMaterial({ vertexColors: true, map: grassTex });
   var terrain = new T.Mesh(terrainGeo, terrainMat); terrain.receiveShadow = true; scene.add(terrain);
 
   /* ---------- sky: atmospheric gradient, sun, procedural cumulus ---------- */
@@ -126,7 +126,7 @@
       "uniform vec3 uSun; uniform float uDusk,uTime,uWinter; varying vec3 vD;",
       "float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}",
       "float n(vec2 p){vec2 i=floor(p),f=fract(p);vec2 u=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),u.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),u.x),u.y);}",
-      "float fb(vec2 p){float v=0.,a=.5;for(int i=0;i<6;i++){v+=a*n(p);p=p*2.03+vec2(1.7,9.2);a*=.5;}return v;}",
+      "float fb(vec2 p){float v=0.,a=.5;for(int i=0;i<4;i++){v+=a*n(p);p=p*2.03+vec2(1.7,9.2);a*=.5;}return v;}",
       "void main(){ vec3 d=normalize(vD); float y=d.y; float sd=max(dot(d,normalize(uSun)),0.);",
       " vec3 zen=mix(mix(vec3(.16,.36,.7),vec3(.42,.52,.62),uWinter*.6),vec3(.05,.04,.12),uDusk);",
       " vec3 hor=mix(mix(vec3(.74,.84,.93),vec3(.83,.86,.88),uWinter*.6),vec3(.96,.56,.36),uDusk);",
@@ -134,7 +134,7 @@
       " c+=mix(vec3(1.,.88,.7),vec3(1.,.55,.3),uDusk)*(pow(sd,6.)*.28+pow(sd,60.)*.35)+vec3(1.,.97,.9)*smoothstep(.9994,.9998,sd)*2.;",
       " if(y>0.){ vec2 uv=d.xz/(y+.08)*.9+vec2(uTime*.004,uTime*.0015);",
       "  float cl=fb(uv*1.6); float cov=mix(.5,.42,uWinter); float m=smoothstep(cov,cov+.26,cl)*smoothstep(0.,.18,y);",
-      "  float shade=fb(uv*1.6+vec2(.08,.05)); vec3 lit=mix(vec3(1.,.99,.97),vec3(1.,.72,.55),uDusk); vec3 sh=mix(vec3(.62,.67,.75),vec3(.38,.22,.3),uDusk);",
+      "  float shade=cl+(n(uv*5.)-.5)*.12; vec3 lit=mix(vec3(1.,.99,.97),vec3(1.,.72,.55),uDusk); vec3 sh=mix(vec3(.62,.67,.75),vec3(.38,.22,.3),uDusk);",
       "  vec3 cc=mix(lit,sh,smoothstep(.45,.85,shade))*(1.+pow(sd,4.)*.35);",
       "  c=mix(c,cc,m*.94); }",
       " else { c=mix(hor*.92,hor*.7,clamp(-y*6.,0.,1.)); }",
@@ -146,7 +146,7 @@
   var hemi = new T.HemisphereLight(0xcfe3f5, 0x3b4a22, .55);
   var sun = new T.DirectionalLight(0xfff1dc, 2.1);
   sun.castShadow = true;
-  sun.shadow.mapSize.set(mobile ? 1024 : 2048, mobile ? 1024 : 2048);
+  sun.shadow.mapSize.set(mobile ? 512 : 1024, mobile ? 512 : 1024);
   var shc = sun.shadow.camera; shc.left = -38; shc.right = 38; shc.top = 38; shc.bottom = -38; shc.near = 1; shc.far = 260;
   sun.shadow.bias = -.0006; sun.shadow.normalBias = .04;
   scene.add(hemi, sun, sun.target);
@@ -234,11 +234,11 @@
     autumn: ["#c8762a", "#d99b2e", "#b2501f", "#e3b23c", "#9c3b1b", "#c9622a"],
     winter: ["#7a5a36", "#6a4a2c", "#8a6a40"]
   };
-  var LN = mobile ? 3400 : 10000;
-  var leafGeo = new T.PlaneGeometry(.7, .92); leafGeo.translate(0, .46, 0);
+  var LN = mobile ? 2200 : 5200;
+  var leafGeo = new T.PlaneGeometry(.98, 1.28); leafGeo.translate(0, .64, 0);
   var aSeed = new Float32Array(LN), aKeep = new Float32Array(LN), aC = [0, 1, 2, 3].map(function () { return new Float32Array(LN * 3); });
   var seasonsKeys = ["spring", "summer", "autumn", "winter"], leafPos = [];
-  var leafMat = new T.MeshStandardMaterial({ map: leafTex, alphaTest: .45, side: T.DoubleSide, roughness: .7, metalness: 0 });
+  var leafMat = new T.MeshLambertMaterial({ map: leafTex, alphaTest: .45, side: T.DoubleSide });
   var leaves = new T.InstancedMesh(leafGeo, leafMat, LN);
   for (i = 0; i < LN; i++) {
     var tw = twigPts[Math.floor(rand() * twigPts.length)], rr = Math.pow(rand(), .55) * 1.55;
@@ -273,8 +273,8 @@
     sh.vertexShader = LEAF_VS_HEAD + sh.vertexShader.replace("#include <project_vertex>", LEAF_VS_BODY);
     sh.fragmentShader = "varying vec3 vLeaf;\n" + sh.fragmentShader.replace("#include <color_fragment>", "#include <color_fragment>\n diffuseColor.rgb *= vLeaf; ");
   };
-  leaves.castShadow = !mobile;
-  if (!mobile) {
+  leaves.castShadow = false;
+  if (false) {
     var leafDepth = new T.MeshDepthMaterial({ depthPacking: T.RGBADepthPacking, map: leafTex, alphaTest: .45 });
     leafDepth.onBeforeCompile = function (sh) {
       leafUniforms(sh);
@@ -293,7 +293,7 @@
     for (var i = 0; i < p.count; i++) { var y = p.getY(i) / .7; p.setX(i, p.getX(i) * (1 - y * .9)); tmp.copy(lo).lerp(hi, y); c[i * 3] = tmp.r; c[i * 3 + 1] = tmp.g; c[i * 3 + 2] = tmp.b; }
     bladeGeo.setAttribute("color", new T.BufferAttribute(c, 3)); bladeGeo.computeVertexNormals();
   })();
-  var grassMat = new T.MeshStandardMaterial({ vertexColors: true, side: T.DoubleSide, roughness: .9 });
+  var grassMat = new T.MeshLambertMaterial({ vertexColors: true, side: T.DoubleSide });
   grassMat.onBeforeCompile = function (sh) {
     sh.uniforms.uTime = U.uTime; sh.uniforms.uWind = U.uWind; sh.uniforms.uFrost = U.uFrost;
     sh.vertexShader = "uniform float uTime,uFrost; uniform vec2 uWind; varying float vTip;\n" + sh.vertexShader.replace("#include <project_vertex>", [
@@ -322,11 +322,11 @@
     s3.set(1, 1, 1);
     gm.count = placed; gm.userData.full = placed; gm.receiveShadow = true; gm.frustumCulled = false; scene.add(gm); grassMeshes.push(gm);
   }
-  var gScale = mobile ? .3 : 1;
-  grassPatch(0, 4, 40, Math.floor(26000 * gScale), [0, 0, 1.6]);
-  grassPatch(RIB.x, RIB.z + 4, 22, Math.floor(7000 * gScale));
-  grassPatch(ROS.x, ROS.z, 20, Math.floor(6000 * gScale));
-  grassPatch(PAV.x, PAV.z + 12, 26, Math.floor(6000 * gScale), [PAV.x, PAV.z, 13.5]);
+  var gScale = mobile ? .4 : 1;
+  grassPatch(0, 6, 32, Math.floor(7500 * gScale), [0, 0, 1.6]);
+  grassPatch(RIB.x, RIB.z + 6, 18, Math.floor(2200 * gScale));
+  grassPatch(ROS.x, ROS.z + 4, 16, Math.floor(1800 * gScale));
+  grassPatch(PAV.x, PAV.z + 14, 20, Math.floor(1800 * gScale), [PAV.x, PAV.z, 13.5]);
 
   /* ---------- the countryside: painted tree impostors on the far hills ---------- */
   function treeCard(kind) {
@@ -346,7 +346,7 @@
     });
   }
   (function () {
-    var N = mobile ? 160 : 420, kinds = [0, 1, 2].map(function (k) { return treeCard(k); });
+    var N = mobile ? 110 : 260, kinds = [0, 1, 2].map(function (k) { return treeCard(k); });
     var cross = (function () {
       var g1 = new T.PlaneGeometry(1, 1); g1.translate(0, .5, 0);
       var g2 = g1.clone(); g2.rotateY(Math.PI / 2);
@@ -359,7 +359,7 @@
       var g = new T.BufferGeometry(); g.setAttribute("position", new T.Float32BufferAttribute(pos, 3)); g.setAttribute("normal", new T.Float32BufferAttribute(nor, 3)); g.setAttribute("uv", new T.Float32BufferAttribute(uv, 2)); g.setIndex(idx); return g;
     })();
     var meshes = kinds.map(function (tex) {
-      var mat = new T.MeshStandardMaterial({ map: tex, alphaTest: .4, alphaToCoverage: true, side: T.DoubleSide, roughness: 1 });
+      var mat = new T.MeshLambertMaterial({ map: tex, alphaTest: .4, alphaToCoverage: !mobile, side: T.DoubleSide });
       mat.onBeforeCompile = function (sh) { sh.fragmentShader = sh.fragmentShader.replace("#include <normal_fragment_begin>", "vec3 normal = normalize( vNormal ); vec3 geometryNormal = normal;"); };
       var mm = new T.InstancedMesh(cross, mat, N); mm.count = 0; mm.frustumCulled = false; scene.add(mm); return mm;
     });
@@ -378,8 +378,8 @@
   })();
 
   /* ---------- falling leaves (tumbling) and snow ---------- */
-  var FN = reduce ? 0 : (mobile ? 90 : 240), SN = reduce ? 0 : (mobile ? 900 : 2200);
-  var fallMat = new T.MeshStandardMaterial({ map: leafTex, alphaTest: .45, side: T.DoubleSide, roughness: .75 });
+  var FN = reduce ? 0 : (mobile ? 60 : 140), SN = reduce ? 0 : (mobile ? 600 : 1200);
+  var fallMat = new T.MeshLambertMaterial({ map: leafTex, alphaTest: .45, side: T.DoubleSide });
   var falling = new T.InstancedMesh(leafGeo.clone(), fallMat, Math.max(FN, 1)); falling.frustumCulled = false; scene.add(falling);
   falling.instanceColor = new T.InstancedBufferAttribute(new Float32Array(Math.max(FN, 1) * 3).fill(1), 3);
   var fState = [];
@@ -507,7 +507,7 @@
   var flagPole = new T.Mesh(new T.CylinderGeometry(.05, .05, 2.4, 8), timberMat); flagPole.position.y = 13.4; pavilion.add(flagPole);
   var flag = new T.Mesh(new T.PlaneGeometry(1.9, 1.05, 12, 4), clothMaterial(canvasTex(64, 32, function (g) { g.fillStyle = "#e3c27c"; g.fillRect(0, 0, 64, 32); }), 3, { horizontal: true }));
   flag.position.set(.95, 14, 0); pavilion.add(flag);
-  var lamp = new T.PointLight(0xffd9a0, 1.2, 30, 1.5); lamp.position.set(0, 6.4, 0); pavilion.add(lamp);
+  roofMat.emissive = col("#3a1a10"); roofMat.emissiveIntensity = 0;
 
   var carousel = new T.Group(); carousel.position.y = 3.6; pavilion.add(carousel);
   var cards = [], entries = (HC.entries || []).slice();
@@ -515,7 +515,7 @@
   var shown = PAGE === "work" ? entries.slice(0, mobile ? 10 : 16) : featured.map(function (sl) { return entries.filter(function (e) { return e.slug === sl; })[0]; }).filter(Boolean);
   var R = shown.length > 10 ? 10.2 : 8.6;
   var loader = new T.TextureLoader(), cls = HC.classes || {};
-  var paperMat = new T.MeshStandardMaterial({ color: 0xf6f3ea, roughness: .9 });
+  var paperMat = new T.MeshStandardMaterial({ color: 0xf6f3ea, emissive: 0x6a5f50, roughness: .9 });
   var stringMat = new T.LineBasicMaterial({ color: 0x4a3a28 });
   shown.forEach(function (e, ci) {
     var a = ci / shown.length * Math.PI * 2;
@@ -527,11 +527,11 @@
       var words = e.title.split(" "), line = "", lines = []; words.forEach(function (wd) { if ((line + wd).length > 18) { lines.push(line); line = ""; } line += wd + " "; }); lines.push(line);
       lines.forEach(function (l, kk) { g.fillText(l.trim(), w / 2, h / 2 - 20 + kk * 40); });
     });
-    var imgMat = new T.MeshStandardMaterial({ map: placeholder, roughness: .55 });
+    var imgMat = new T.MeshStandardMaterial({ map: placeholder, emissiveMap: placeholder, emissive: 0xffffff, emissiveIntensity: .32, roughness: .55 });
     var img = new T.Mesh(new T.PlaneGeometry(2.96, 2.22), imgMat); img.position.set(0, .12, .04); card.add(img);
-    if (location.protocol !== "file:") loader.load(BASE + e.img, function (tx) { tx.encoding = T.sRGBEncoding; tx.anisotropy = maxAniso; if (e.contain) { tx.repeat.set(.82, .82); tx.offset.set(.09, .09); } imgMat.map = tx; imgMat.needsUpdate = true; });
+    if (location.protocol !== "file:") loader.load(BASE + e.img, function (tx) { tx.encoding = T.sRGBEncoding; tx.anisotropy = maxAniso; if (e.contain) { tx.repeat.set(.82, .82); tx.offset.set(.09, .09); } imgMat.map = tx; imgMat.emissiveMap = tx; imgMat.needsUpdate = true; });
     var label = textTexture(512, 64, function (g, w, h) { g.fillStyle = "#f6f3ea"; g.fillRect(0, 0, w, h); g.fillStyle = "#1f1a1e"; g.font = "400 26px Bevan, Georgia, serif"; g.fillText(e.title.length > 32 ? e.title.slice(0, 31) + "…" : e.title, 14, 40); });
-    var lab = new T.Mesh(new T.PlaneGeometry(2.96, .37), new T.MeshStandardMaterial({ map: label, roughness: .9 })); lab.position.set(0, -1.12, .04); card.add(lab);
+    var lab = new T.Mesh(new T.PlaneGeometry(2.96, .37), new T.MeshStandardMaterial({ map: label, emissiveMap: label, emissive: 0xffffff, emissiveIntensity: .3, roughness: .9 })); lab.position.set(0, -1.12, .04); card.add(lab);
     var tagTxt = textTexture(128, 96, function (g, w) { g.fillStyle = "#e3c27c"; g.fillRect(0, 0, w, 96); g.fillStyle = "#34102a"; g.font = "800 30px 'Sofia Sans Extra Condensed', sans-serif"; g.textAlign = "center"; g.fillText("CLASS " + ((cls[e.cls] || {}).no || ""), w / 2, 60); });
     var tag = new T.Mesh(new T.PlaneGeometry(.62, .44), new T.MeshStandardMaterial({ map: tagTxt, roughness: .9, side: T.DoubleSide })); tag.position.set(1.1, 1.38, .05); tag.rotation.z = .12; card.add(tag);
     card.add(new T.Line(new T.BufferGeometry().setFromPoints([V(0, 1.31, 0), V(0, 3.4, 0)]), stringMat));
@@ -545,18 +545,18 @@
   var rosette = new T.Group(); rosette.position.set(ROS.x, ROS.y + 7.5, ROS.z); scene.add(rosette);
   var rosInner = new T.Group(); rosette.add(rosInner);
   function pleatRing(r0, r1, n, color, zz) {
-    var geo = new T.PlaneGeometry(r1 - r0, (Math.PI * 2 * r1) / n * 1.18), mat = new T.MeshStandardMaterial({ color: color, roughness: .3, metalness: .12, side: T.DoubleSide });
+    var geo = new T.PlaneGeometry(r1 - r0, (Math.PI * 2 * r1) / n * 1.18), mat = new T.MeshStandardMaterial({ color: color, emissive: color, emissiveIntensity: .14, roughness: .3, metalness: .12, side: T.DoubleSide });
     for (var kk = 0; kk < n; kk++) { var mm = new T.Mesh(geo, mat), a = kk / n * Math.PI * 2; mm.position.set(Math.cos(a) * (r0 + r1) / 2, Math.sin(a) * (r0 + r1) / 2, zz); mm.rotation.z = a; mm.rotateX(kk % 2 ? .55 : -.55); mm.castShadow = true; rosInner.add(mm); }
   }
   pleatRing(2.4, 3.6, 72, 0x5a1744, 0);
   pleatRing(1.55, 2.5, 54, 0xd8b56e, .12);
-  var rosCenter = new T.Mesh(new T.CircleGeometry(1.6, 64), new T.MeshStandardMaterial({ roughness: .6, metalness: .05, map: textTexture(512, 512, function (g, w, h) {
+  var rosTex, rosCenter = new T.Mesh(new T.CircleGeometry(1.6, 64), new T.MeshStandardMaterial({ roughness: .6, metalness: .05, emissive: 0xffffff, emissiveIntensity: .22, map: rosTex = textTexture(512, 512, function (g, w, h) {
     var gr = g.createRadialGradient(w / 2, h / 2, 10, w / 2, h / 2, w / 2); gr.addColorStop(0, "#fbf8f0"); gr.addColorStop(1, "#e9e2d1"); g.fillStyle = gr; g.beginPath(); g.arc(w / 2, h / 2, w / 2, 0, Math.PI * 2); g.fill();
     g.strokeStyle = "#b8963f"; g.lineWidth = 12; g.beginPath(); g.arc(w / 2, h / 2, w / 2 - 30, 0, Math.PI * 2); g.stroke();
     g.fillStyle = "#561642"; g.textAlign = "center"; g.font = "800 92px 'Sofia Sans Extra Condensed', sans-serif"; g.fillText("HIGHLY", w / 2, h / 2 - 6);
     g.font = "800 66px 'Sofia Sans Extra Condensed', sans-serif"; g.fillText("COMMENDED", w / 2, h / 2 + 72);
   }) }));
-  rosCenter.position.z = .25; rosInner.add(rosCenter);
+  rosCenter.material.emissiveMap = rosTex; rosCenter.position.z = .25; rosInner.add(rosCenter);
   var tailTex = textTexture(64, 256, function (g, w, h) { g.fillStyle = "#561540"; g.fillRect(0, 0, w, h); var gr = g.createLinearGradient(0, 0, w, 0); gr.addColorStop(0, "rgba(0,0,0,.2)"); gr.addColorStop(.5, "rgba(255,255,255,.14)"); gr.addColorStop(1, "rgba(0,0,0,.2)"); g.fillStyle = gr; g.fillRect(0, 0, w, h); });
   [-1, 1].forEach(function (sgn, kk) {
     var tail = new T.Mesh(new T.PlaneGeometry(1.3, 6, 4, 30), clothMaterial(tailTex, kk * 2.1, { notch: true, rough: .3 }));
@@ -577,7 +577,7 @@
     var fr = new T.Mesh(new T.PlaneGeometry(1.16, 1.26), new T.MeshStandardMaterial({ color: 0xf6f3ea, roughness: .8 })); fr.position.set(wx, 1.9, 1.905); cottage.add(fr);
   });
   var door = new T.Mesh(new T.PlaneGeometry(.9, 1.8), new T.MeshStandardMaterial({ color: 0x48541a, roughness: .6 })); door.position.set(0, .9, 1.91); cottage.add(door);
-  var glow = new T.PointLight(0xffc06a, 0, 20, 1.6); glow.position.set(0, 2, 3.2); cottage.add(glow);
+
 
   /* ---------- night: stars and fireflies ---------- */
   var sN = mobile ? 400 : 900, sPos = new Float32Array(sN * 3);
@@ -594,17 +594,17 @@
   /* ---------- stations ---------- */
   var heroLookX = mobile ? 0 : -1;
   var ST = {
-    tree: { pos: V(TREE.x + 5, TREE.y + 9, TREE.z + 48), look: V(TREE.x + heroLookX, TREE.y + 9.5, TREE.z), dusk: 0, orbit: true },
-    ribbons: { pos: V(RIB.x, RIB.y + 6.4, RIB.z + (mobile ? 22 : 27)), look: V(RIB.x, RIB.y + 5, RIB.z), dusk: 0 },
-    sky: { pos: V(14, 40, 74), look: V(-24, 76, -50), dusk: .08 },
-    pavilion: { pos: V(PAV.x, PAV.y + (mobile ? 4.4 : 4.6), PAV.z + (mobile ? 25 : 21)), look: V(PAV.x, PAV.y + (mobile ? 4.6 : 3.7), PAV.z), dusk: .05, carousel: true },
-    rosette: { pos: V(ROS.x, ROS.y + 7.2, ROS.z + 18), look: V(ROS.x, ROS.y + 7, ROS.z), dusk: .12, rosette: true },
-    meadow: { pos: V(-34, 30, 104), look: V(4, 6, -10), dusk: .18 },
-    studio: { pos: V(TREE.x + 9, TREE.y + 7, TREE.z + 30), look: V(TREE.x - 5, TREE.y + 5.5, TREE.z - 2), dusk: .34 },
+    tree: { pos: V(TREE.x + 5, TREE.y + 9, TREE.z + 48), look: V(TREE.x + heroLookX, TREE.y + 9.5, TREE.z), dusk: .42, orbit: true },
+    ribbons: { pos: V(RIB.x, RIB.y + 6.4, RIB.z + (mobile ? 22 : 27)), look: V(RIB.x, RIB.y + 5, RIB.z), dusk: .36 },
+    sky: { pos: V(14, 40, 74), look: V(-24, 76, -50), dusk: .45 },
+    pavilion: { pos: V(PAV.x, PAV.y + (mobile ? 4.4 : 4.6), PAV.z + (mobile ? 25 : 21)), look: V(PAV.x, PAV.y + (mobile ? 4.6 : 3.7), PAV.z), dusk: .48, carousel: true },
+    rosette: { pos: V(ROS.x, ROS.y + 7.2, ROS.z + 18), look: V(ROS.x, ROS.y + 7, ROS.z), dusk: .42, rosette: true },
+    meadow: { pos: V(-34, 30, 104), look: V(4, 6, -10), dusk: .55 },
+    studio: { pos: V(TREE.x + 9, TREE.y + 7, TREE.z + 30), look: V(TREE.x - 5, TREE.y + 5.5, TREE.z - 2), dusk: .66 },
     dusk: { pos: V(TREE.x + 4, TREE.y + 5, TREE.z + 32), look: V(TREE.x - 5, TREE.y + 6, TREE.z), dusk: 1 }
   };
   if (mobile) { ST.tree.pos = V(TREE.x + 3, TREE.y + 7, TREE.z + 52); ST.tree.look = V(TREE.x, TREE.y + 11, TREE.z); }
-  ST.hero = { pos: ST.tree.pos.clone(), look: ST.tree.look.clone(), dusk: .86, orbit: true };
+  ST.hero = { pos: ST.tree.pos.clone(), look: ST.tree.look.clone().add(V(mobile ? 0 : -9, 0, 0)), dusk: .86, orbit: true };
   ST.eve = { pos: ST.meadow.pos.clone(), look: ST.meadow.look.clone(), dusk: .9 };
   var PAGE_STATION = { home: "hero", services: "ribbons", "wild-apricot": "sky", work: "pavilion", about: "studio", contact: "dusk", pitch: "meadow" };
 
@@ -727,8 +727,8 @@
   var perfFrames = 0, perfTime = 0, perfLevel = 0;
   function degrade() {
     perfLevel++;
-    if (perfLevel === 1) { sun.castShadow = false; leaves.castShadow = false; grassMeshes.forEach(function (g) { g.count = Math.floor(g.userData.full * .4); }); renderer.setPixelRatio(Math.min(1, DPR)); W = 0; resize(); }
-    if (perfLevel === 2) { grassMeshes.forEach(function (g) { g.count = Math.floor(g.userData.full * .12); }); renderer.setPixelRatio(.75); W = 0; resize(); }
+    if (perfLevel === 1) { sun.castShadow = false; renderer.shadowMap.enabled = false; grassMeshes.forEach(function (g) { g.count = Math.floor(g.userData.full * .5); }); renderer.setPixelRatio(Math.min(.9, DPR)); W = 0; resize(); }
+    if (perfLevel === 2) { grassMeshes.forEach(function (g) { g.count = Math.floor(g.userData.full * .15); }); leaves.count = Math.floor(LN * .65); renderer.setPixelRatio(.7); W = 0; resize(); }
     doc.setAttribute("data-world-quality", String(2 - perfLevel));
   }
   var running = true, last = 0, prevStation = "", sunDay = V(.45, .55, .35).normalize(), sunDusk = V(-.75, .07, -.25).normalize();
@@ -739,7 +739,7 @@
     if (!running) return;
     requestAnimationFrame(frame);
     var rawDt = (now - last) / 1000 || .016, dt = Math.min(.05, rawDt); last = now;
-    if (perfLevel < 2 && rawDt < 1) { perfFrames++; perfTime += rawDt; if (perfFrames >= 60) { if (perfFrames / perfTime < 26) degrade(); perfFrames = 0; perfTime = 0; } }
+    if (perfLevel < 2 && rawDt < 1) { perfFrames++; perfTime += rawDt; if (perfFrames >= 45) { if (perfFrames / perfTime < 40) degrade(); perfFrames = 0; perfTime = 0; } }
     var t = reduce ? 0 : clock.getElapsedTime();
     U.uTime.value = t; skyU.uTime.value = t;
 
@@ -784,7 +784,7 @@
     renderer.toneMappingExposure = lerp(1, .82, dk);
     scene.fog.color.copy(fogDay).lerp(fogWinter, frost * .7).lerp(fogDusk, dk);
     starMat.opacity = smooth(.6, 1, dk); ffMat.opacity = smooth(.55, 1, dk) * (.7 + .3 * Math.sin(t * 3));
-    winMat.emissiveIntensity = smooth(.25, .8, dk) * 2.2; glow.intensity = smooth(.3, .9, dk) * 1.8; lamp.intensity = lerp(.6, 1.6, dk);
+    winMat.emissiveIntensity = smooth(.25, .8, dk) * 2.6; roofMat.emissiveIntensity = smooth(.4, 1, dk) * .9;
 
     // birds and bunting
     for (var b = 0; b < birds.length; b++) {

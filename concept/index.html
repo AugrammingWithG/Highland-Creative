@@ -64,81 +64,44 @@
 <main id="main">
   <section class="hero" data-hero data-station="hero" aria-labelledby="hero-title">
     <div class="hero-stage">
-      <div class="wrap hero-grid">
-        <div class="cover">
-          <div class="cover-copy">
-            <h1 id="hero-title">Graphic &amp; web design <em>that works.</em></h1>
-            <p class="lede">Websites, print, branding and Wild Apricot membership sites, made by a family studio in the Southern Highlands since 1985.</p>
-            <div class="cover-actions">
-              <a class="btn btn-manila" href="#entry-form">Start a project<svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a>
-              <a class="btn btn-line" href="work.html">See our work</a>
-            </div>
-          </div>
-          <div class="season-dial">
-            <span class="season-name" data-season-name aria-live="polite">Spring in the Highlands</span>
-            <div class="season-track" aria-hidden="true"><i data-season-fill></i></div>
-            <span class="seasons" role="group" aria-label="Turn the tree to a season">
-              <button type="button" data-season="spring" aria-pressed="true">Spring</button>
-              <button type="button" data-season="summer" aria-pressed="false">Summer</button>
-              <button type="button" data-season="autumn" aria-pressed="false">Autumn</button>
-              <button type="button" data-season="winter" aria-pressed="false">Winter</button>
-            </span>
-          </div>
-          <p class="imprint"><span>Schedule of classes · <span data-year>2026</span></span><span>Mittagong NSW · Est. 1985</span></p>
+      <div class="wrap hero-copy">
+        <h1 id="hero-title">Graphic &amp; web design <em>that works.</em></h1>
+        <p class="lede">Websites, print, branding and Wild Apricot membership sites, made by a family studio in the Southern Highlands since 1985.</p>
+        <div class="cover-actions">
+          <a class="btn btn-manila" href="#entry-form">Start a project<svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+          <a class="btn btn-ghost" href="work.html">See our work</a>
         </div>
-
-        <div class="tree-window" aria-hidden="true"><span class="world-hint"><svg aria-hidden="true"><use href="#i-drag"/></svg>Drag the tree · scroll to turn the seasons</span></div>
-
-        <aside class="entry" id="entry-form" aria-labelledby="entry-title">
-          <svg class="string" viewBox="0 0 120 104" aria-hidden="true"><path d="M60 0 C 52 30, 70 60, 60 104"/></svg>
-          <div class="tag-hang">
-            <form class="tag" data-entry novalidate>
-              <span class="tag-grip" aria-hidden="true" title="Grab to swing"></span>
-              <div class="tag-head"><h2 id="entry-title">Entry form</h2><span class="num" data-entry-no>No. 0412</span></div>
-              <div class="form-body">
-                <p class="tag-note">Tell us what you're entering and we'll be in touch.</p>
-                <div class="field">
-                  <label for="h-class">Class</label>
-                  <select id="h-class" name="class" required>
-                    <option value="website">1 · Website design</option>
-                    <option value="wild-apricot">2 · Wild Apricot membership site</option>
-                    <option value="print">3 · Print &amp; advertising</option>
-                    <option value="branding">4 · Branding &amp; identity</option>
-                    <option value="seo">5 · SEO &amp; web marketing</option>
-                    <option value="copy">6 · Copywriting</option>
-                    <option value="care">7 · Website Care Plan</option>
-                    <option value="unsure">Not sure yet, let's talk</option>
-                  </select>
-                </div>
-                <div class="field">
-                  <label for="h-name">Your name</label>
-                  <input id="h-name" name="name" autocomplete="name" required placeholder="Jane Citizen">
-                  <span class="err">Please add your name so we know who to ask for.</span>
-                </div>
-                <div class="field">
-                  <label for="h-contact">Phone or email</label>
-                  <input id="h-contact" name="contact" data-contact="1" autocomplete="email" required placeholder="0400 000 000">
-                  <span class="err">Add a phone number or an email address we can reply to.</span>
-                </div>
-                <button class="btn btn-plum" type="submit">Lodge my entry</button>
-                <p class="tag-foot">or call <a href="tel:+61248724490">02 4872 4490</a></p>
-              </div>
-              <div class="form-done" role="status">
-                <span class="stamp">Entry received<small data-stamp-no>No. 0412</small></span>
-                <p>Thanks<span data-thanks-name></span>. Your entry for <b data-thanks-class>Website design</b> is with Steven and Helen, and they'll be in touch soon.</p>
-                <p class="tag-note">Concept demo: no message is actually sent.</p>
-                <button class="btn btn-line" type="button" data-again>Lodge another entry</button>
-              </div>
-            </form>
-          </div>
-        </aside>
+        <div class="season-dial">
+          <span class="season-name" data-season-name aria-live="polite">Spring in the Highlands</span>
+          <div class="season-track" aria-hidden="true"><i data-season-fill></i></div>
+          <span class="seasons" role="group" aria-label="Turn the tree to a season">
+            <button type="button" data-season="spring" aria-pressed="true">Spring</button>
+            <button type="button" data-season="summer" aria-pressed="false">Summer</button>
+            <button type="button" data-season="autumn" aria-pressed="false">Autumn</button>
+            <button type="button" data-season="winter" aria-pressed="false">Winter</button>
+          </span>
+        </div>
       </div>
+      <div class="tree-window" aria-hidden="true"><span class="world-hint"><svg aria-hidden="true"><use href="#i-drag"/></svg>Drag the tree · scroll to turn the seasons</span></div>
       <p class="scroll-cue" aria-hidden="true"><span>Scroll to turn the seasons</span><i></i></p>
     </div>
   </section>
 
-  <section class="section schedule" data-station="ribbons" data-side="left" aria-labelledby="classes-title">
+  <section class="section schedule" data-station="ribbons" data-side="left" data-scrim="right" aria-labelledby="classes-title">
     <div class="wrap">
+      <div class="panel">
+        <div class="section-title"><span class="sec-no" aria-hidden="true">1</span><h2 id="classes-title">Classes for <span data-year>2026</span></h2></div>
+        <p class="section-intro">Seven classes, each judged on one thing: design that works for your business. Their ribbons are flying in the field.</p>
+        <ol class="class-list">
+          <li><span class="class-no" aria-hidden="true">1</span><div class="class-line"><h3><a href="services.html#web">Website design &amp; development</a></h3><span class="leader" aria-hidden="true"></span><span class="fee">By quote</span></div><p>Custom, mobile-responsive websites, eCommerce, WordPress and content management, built to tie in with your existing branding.</p></li>
+          <li><span class="class-no" aria-hidden="true">2</span><div class="class-line"><h3><a href="wild-apricot.html">Wild Apricot membership sites</a></h3><span class="leader" aria-hidden="true"></span><span class="fee">Free site review</span></div><p>Design, account setup, training and ongoing support for clubs, associations and charities.</p></li>
+          <li><span class="class-no" aria-hidden="true">3</span><div class="class-line"><h3><a href="services.html#print">Print &amp; advertisement design</a></h3><span class="leader" aria-hidden="true"></span><span class="fee">By quote</span></div><p>Brochures, catalogues, advertisements, books, annual reports, packaging, posters and signage.</p></li>
+          <li><span class="class-no" aria-hidden="true">4</span><div class="class-line"><h3><a href="services.html#brand">Branding &amp; identity</a></h3><span class="leader" aria-hidden="true"></span><span class="fee">By quote</span></div><p>Logos, visual identity and the business cards, letterhead and packaging that carry them.</p></li>
+          <li><span class="class-no" aria-hidden="true">5</span><div class="class-line"><h3><a href="services.html#seo">SEO &amp; web marketing</a></h3><span class="leader" aria-hidden="true"></span><span class="fee">By quote</span></div><p>On-page and off-page SEO, pay-per-click advertising, e-newsletters and coordinated campaigns.</p></li>
+          <li><span class="class-no" aria-hidden="true">6</span><div class="class-line"><h3><a href="services.html#copy">Copywriting</a></h3><span class="leader" aria-hidden="true"></span><span class="fee">By quote</span></div><p>Clear, concise copy for websites, brochures, ads and newsletters, plus proofreading and editing.</p></li>
+          <li><span class="class-no" aria-hidden="true">7</span><div class="class-line"><h3><a href="services.html#care">Website Care Plan</a></h3><span class="leader" aria-hidden="true"></span><span class="fee money num">$360 + GST a year</span></div><p>Monthly updates and off-site backups that keep a WordPress website fast and secure.</p></li>
+        </ol>
+      </div>
       <div class="schedule-aside">
         <div class="care-card" id="care">
           <h3>Website Care Plan</h3>
@@ -153,23 +116,10 @@
           </div>
         </div>
       </div>
-      <div class="panel">
-        <div class="section-title"><span class="sec-no" aria-hidden="true">1</span><h2 id="classes-title">Classes for <span data-year>2026</span></h2></div>
-        <p class="section-intro">Seven classes, each judged on one thing: design that works for your business. Their ribbons are flying in the field.</p>
-        <ol class="class-list">
-          <li><span class="class-no" aria-hidden="true">1</span><div class="class-line"><h3><a href="services.html#web">Website design &amp; development</a></h3><span class="leader" aria-hidden="true"></span><span class="fee">By quote</span></div><p>Custom, mobile-responsive websites, eCommerce, WordPress and content management, built to tie in with your existing branding.</p></li>
-          <li><span class="class-no" aria-hidden="true">2</span><div class="class-line"><h3><a href="wild-apricot.html">Wild Apricot membership sites</a></h3><span class="leader" aria-hidden="true"></span><span class="fee">Free site review</span></div><p>Design, account setup, training and ongoing support for clubs, associations and charities.</p></li>
-          <li><span class="class-no" aria-hidden="true">3</span><div class="class-line"><h3><a href="services.html#print">Print &amp; advertisement design</a></h3><span class="leader" aria-hidden="true"></span><span class="fee">By quote</span></div><p>Brochures, catalogues, advertisements, books, annual reports, packaging, posters and signage.</p></li>
-          <li><span class="class-no" aria-hidden="true">4</span><div class="class-line"><h3><a href="services.html#brand">Branding &amp; identity</a></h3><span class="leader" aria-hidden="true"></span><span class="fee">By quote</span></div><p>Logos, visual identity and the business cards, letterhead and packaging that carry them.</p></li>
-          <li><span class="class-no" aria-hidden="true">5</span><div class="class-line"><h3><a href="services.html#seo">SEO &amp; web marketing</a></h3><span class="leader" aria-hidden="true"></span><span class="fee">By quote</span></div><p>On-page and off-page SEO, pay-per-click advertising, e-newsletters and coordinated campaigns.</p></li>
-          <li><span class="class-no" aria-hidden="true">6</span><div class="class-line"><h3><a href="services.html#copy">Copywriting</a></h3><span class="leader" aria-hidden="true"></span><span class="fee">By quote</span></div><p>Clear, concise copy for websites, brochures, ads and newsletters, plus proofreading and editing.</p></li>
-          <li><span class="class-no" aria-hidden="true">7</span><div class="class-line"><h3><a href="services.html#care">Website Care Plan</a></h3><span class="leader" aria-hidden="true"></span><span class="fee money num">$360 + GST a year</span></div><p>Monthly updates and off-site backups that keep a WordPress website fast and secure.</p></li>
-        </ol>
-      </div>
     </div>
   </section>
 
-  <section class="section membership" data-station="sky" aria-labelledby="wa-title">
+  <section class="section membership" data-station="sky" data-scrim="left" aria-labelledby="wa-title">
     <div class="wrap">
       <div class="panel sky">
         <div class="section-title"><span class="sec-no" aria-hidden="true">2</span><h2 id="wa-title">Membership sites for clubs, associations &amp; charities</h2></div>
@@ -193,7 +143,7 @@
     </div>
   </section>
 
-  <section class="section pavilion" data-station="pavilion" aria-labelledby="work-title">
+  <section class="section pavilion" data-station="pavilion" data-side="right" data-scrim="left" aria-labelledby="work-title">
     <div class="wrap">
       <div class="panel olive">
         <div class="section-title"><span class="sec-no" aria-hidden="true">3</span><h2 id="work-title">Entries in the pavilion</h2></div>
@@ -205,7 +155,7 @@
     </div>
   </section>
 
-  <section class="section judges" data-station="rosette" data-side="left" aria-labelledby="judges-title">
+  <section class="section judges" data-station="rosette" data-side="left" data-scrim="right" aria-labelledby="judges-title">
     <div class="wrap">
       <div class="rosette-col">
         <svg class="rosette" viewBox="0 0 200 270" role="img" aria-label="Highly commended rosette">
@@ -277,6 +227,57 @@
         <blockquote>“We are inspired by nature and our surrounds, and we embrace technology as our tool.”</blockquote>
         <a class="btn btn-plum" href="about.html#manifesto">Read our manifesto<svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a>
       </div>
+    </div>
+  </section>
+  <section class="section enter" id="entry-form" data-station="dusk" data-scrim="left" aria-labelledby="enter-title">
+    <div class="wrap enter-grid">
+      <div class="enter-copy">
+        <h2 id="enter-title">Lodge an entry</h2>
+        <p class="lede">Tell us what you’re making, and Steven or Helen will be in touch. Or call the studio on <a href="tel:+61248724490">02 4872 4490</a>.</p>
+      </div>
+      <aside class="entry" aria-labelledby="entry-title">
+        <svg class="string" viewBox="0 0 120 104" aria-hidden="true"><path d="M60 0 C 52 30, 70 60, 60 104"/></svg>
+        <div class="tag-hang">
+          <form class="tag" data-entry novalidate>
+            <span class="tag-grip" aria-hidden="true" title="Grab to swing"></span>
+            <div class="tag-head"><h2 id="entry-title">Entry form</h2><span class="num" data-entry-no>No. 0412</span></div>
+            <div class="form-body">
+              <p class="tag-note">Tell us what you're entering and we'll be in touch.</p>
+              <div class="field">
+                <label for="h-class">Class</label>
+                <select id="h-class" name="class" required>
+                  <option value="website">1 · Website design</option>
+                  <option value="wild-apricot">2 · Wild Apricot membership site</option>
+                  <option value="print">3 · Print &amp; advertising</option>
+                  <option value="branding">4 · Branding &amp; identity</option>
+                  <option value="seo">5 · SEO &amp; web marketing</option>
+                  <option value="copy">6 · Copywriting</option>
+                  <option value="care">7 · Website Care Plan</option>
+                  <option value="unsure">Not sure yet, let's talk</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="h-name">Your name</label>
+                <input id="h-name" name="name" autocomplete="name" required placeholder="Jane Citizen">
+                <span class="err">Please add your name so we know who to ask for.</span>
+              </div>
+              <div class="field">
+                <label for="h-contact">Phone or email</label>
+                <input id="h-contact" name="contact" data-contact="1" autocomplete="email" required placeholder="0400 000 000">
+                <span class="err">Add a phone number or an email address we can reply to.</span>
+              </div>
+              <button class="btn btn-plum" type="submit">Lodge my entry</button>
+              <p class="tag-foot">or call <a href="tel:+61248724490">02 4872 4490</a></p>
+            </div>
+            <div class="form-done" role="status">
+              <span class="stamp">Entry received<small data-stamp-no>No. 0412</small></span>
+              <p>Thanks<span data-thanks-name></span>. Your entry for <b data-thanks-class>Website design</b> is with Steven and Helen, and they'll be in touch soon.</p>
+              <p class="tag-note">Concept demo: no message is actually sent.</p>
+              <button class="btn btn-line" type="button" data-again>Lodge another entry</button>
+            </div>
+          </form>
+        </div>
+      </aside>
     </div>
   </section>
 </main>

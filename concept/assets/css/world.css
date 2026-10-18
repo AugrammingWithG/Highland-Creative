@@ -13,7 +13,7 @@ body.world-point { cursor: pointer; }
 #world-tip.on { opacity: 1; }
 
 /* sections let the world show through; reading happens on card-stock panels */
-.webgl .section, .webgl .membership, .webgl .pavilion, .webgl .studio, .webgl .help, .webgl .tryit, .webgl .compare, .webgl .wins, .webgl .plan, .webgl body.pitch { background: transparent; }
+.webgl .enter, .webgl .section, .webgl .membership, .webgl .pavilion, .webgl .studio, .webgl .help, .webgl .tryit, .webgl .compare, .webgl .wins, .webgl .plan, .webgl body.pitch { background: transparent; }
 .panel { position: relative; background: var(--paper); padding: clamp(1.5rem, 3.4vw, 3rem); box-shadow: 0 30px 60px -30px rgb(31 26 30 / .55), 0 4px 10px -4px rgb(31 26 30 / .18); border-radius: 2px; }
 .panel.plum { background: var(--plum-deep); color: var(--on-plum); }
 .panel.olive { background: var(--olive-deep); color: var(--on-olive); }
@@ -42,11 +42,11 @@ body.world-point { cursor: pointer; }
 .scroll-cue i { width: 22px; height: 36px; border: 2px solid var(--plum-night); border-radius: 12px; position: relative; background: rgb(251 252 247 / .6); }
 .scroll-cue i::after { content: ""; position: absolute; left: 50%; top: 6px; width: 4px; height: 8px; margin-left: -2px; border-radius: 2px; background: var(--plum-night); animation: cue 1.8s var(--ease-out) infinite; }
 @keyframes cue { 0% { transform: translateY(0); opacity: 1; } 70% { transform: translateY(12px); opacity: 0; } 100% { opacity: 0; } }
-.no-webgl .hero { height: auto; }
-.no-webgl .hero-stage { position: relative; height: auto; padding-block: 2rem 3rem; background: url("../../../assets/hc/spring-1.jpg") 40% 100% / cover no-repeat; }
-.no-webgl[data-season="summer"] .hero-stage { background-image: url("../../../assets/hc/summer-1.jpg"); }
-.no-webgl[data-season="autumn"] .hero-stage { background-image: url("../../../assets/hc/autumn-1.jpg"); }
-.no-webgl[data-season="winter"] .hero-stage { background-image: url("../../../assets/hc/winter-1.jpg"); }
+html:not(.webgl) .hero { height: auto; }
+html:not(.webgl) .hero-stage { position: relative; height: auto; padding-block: 2rem 3rem; background: url("../../../assets/hc/spring-1.jpg") 40% 100% / cover no-repeat; }
+:root:not(.webgl)[data-season="summer"] .hero-stage { background-image: url("../../../assets/hc/summer-1.jpg"); }
+:root:not(.webgl)[data-season="autumn"] .hero-stage { background-image: url("../../../assets/hc/autumn-1.jpg"); }
+:root:not(.webgl)[data-season="winter"] .hero-stage { background-image: url("../../../assets/hc/winter-1.jpg"); }
 .no-webgl .scroll-cue { display: none; }
 
 /* ---------- home sections over the world ---------- */
@@ -181,3 +181,139 @@ body.world-point { cursor: pointer; }
   .curtain { display: none; }
   .scroll-cue i::after { animation: none; }
 }
+
+/* ---------- landing: copy set straight on the scene ---------- */
+.hero-stage::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, rgb(26 9 22 / .62) 0%, rgb(26 9 22 / .36) 34%, rgb(26 9 22 / 0) 62%), linear-gradient(0deg, rgb(26 9 22 / .4), transparent 32%); }
+.hero-copy { position: relative; z-index: 1; }
+.hero-copy > * { max-width: 40rem; }
+.hero-copy h1 { font-size: clamp(3rem, 1.6rem + 4.6vw, 6.25rem); line-height: .98; color: var(--paper); max-width: 10ch; text-shadow: 0 4px 34px rgb(0 0 0 / .45); }
+.hero-copy h1 em { font-style: normal; color: var(--manila); }
+.hero-copy .lede { font-size: clamp(1.1rem, 1rem + .45vw, 1.4rem); line-height: 1.5; color: #f6ebf2; max-width: 34ch; margin-top: 1.4rem; text-shadow: 0 2px 16px rgb(0 0 0 / .55); }
+.hero-copy .cover-actions { margin-top: 2rem; }
+.btn-ghost { color: var(--paper); border-color: rgb(251 252 247 / .85); background: rgb(26 9 22 / .22); }
+.btn-ghost:hover { background: rgb(251 252 247 / .16); }
+.hero-copy .season-dial { margin-top: 2.6rem; max-width: 27rem; border-top-color: rgb(251 252 247 / .28); }
+.hero-copy .seasons button { color: var(--paper); border-color: rgb(251 252 247 / .45); background: rgb(26 9 22 / .2); }
+.hero-copy .seasons button[aria-pressed="true"] { background: var(--manila); color: var(--plum-night); border-color: var(--manila); }
+.hero :focus-visible, .enter :focus-visible { outline-color: var(--manila); }
+html:not(.webgl) .hero-stage::before { background: linear-gradient(90deg, rgb(26 9 22 / .7), rgb(26 9 22 / .2) 70%); }
+
+/* ---------- lodge an entry, at dusk ---------- */
+.enter { padding-block: 18vh 10vh; }
+.enter-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 26rem); gap: clamp(2rem, 6vw, 6rem); align-items: center; }
+.enter-copy h2 { font-size: var(--fs-h2); color: var(--paper); text-shadow: 0 4px 30px rgb(0 0 0 / .5); }
+.enter-copy .lede { color: #f3e6ee; font-size: var(--fs-lede); line-height: 1.5; max-width: 32ch; margin-top: 1.2rem; text-shadow: 0 2px 14px rgb(0 0 0 / .55); }
+.enter-copy .lede a { color: var(--manila); font-weight: 700; }
+.enter .entry { margin: 0; padding-top: 72px; width: auto; }
+html:not(.webgl) .enter { background: var(--plum-night); }
+.webgl .gate { padding-top: 16vh; }
+@media (max-width: 760px) {
+  .hero-stage::before { background: linear-gradient(180deg, rgb(26 9 22 / .6) 0%, rgb(26 9 22 / .25) 45%, rgb(26 9 22 / 0) 70%); }
+  .hero-copy { padding-top: 1rem; }
+  .enter-grid { grid-template-columns: minmax(0, 1fr); }
+  .enter .entry { width: calc(100% - 12px); margin-inline: auto; padding-top: 56px; }
+  .webgl .enter { padding-top: 40vh; }
+}
+
+/* =====================================================================
+   NO BOXES: every reading surface is set straight on the darkened world.
+   Contrast comes from a soft edgeless tint per section, light type and a
+   text shadow. Forms keep their manila tag; photos stay as images.
+   ===================================================================== */
+.webgl main {
+  --ink: #fbf6ee; --ink-soft: #e7d9e1; --on-dark-accent: #e8c983; --on-dark-olive: #cfd88f;
+  color: var(--ink);
+}
+.webgl main > *:not(.hero) { position: relative; isolation: isolate; }
+.webgl main > *:not(.hero)::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: linear-gradient(180deg, rgb(22 9 19 / 0) 0%, rgb(22 9 19 / .6) 12%, rgb(22 9 19 / .6) 88%, rgb(22 9 19 / 0) 100%);
+}
+.webgl main h1, .webgl main h2, .webgl main h3 { text-shadow: 0 3px 24px rgb(0 0 0 / .45); }
+.webgl main p, .webgl main li, .webgl main dd, .webgl main td { text-shadow: 0 1px 10px rgb(0 0 0 / .4); }
+
+/* surfaces dissolve */
+.webgl .panel, .webgl .svc, .webgl .story, .webgl .sheet, .webgl .rules, .webgl .care-card, .webgl .details-card,
+.webgl .filters, .webgl .results-line, .webgl .manifesto-pull, .webgl .page-cover .cover, .webgl .feature-table,
+.webgl .wa-table .wrap > h2, .webgl .qa-wrap > div:first-child, .webgl .two-col.wa-intro > div:first-child,
+.webgl .about-team > .wrap > h2, .webgl .pitch-hero > *, .webgl .compare > .wrap, .webgl .wins > h2,
+.webgl .wins > .section-intro, .webgl .wins > .footnote, .webgl .help > .wrap, .webgl .tryit > .wrap, .webgl .member,
+.webgl .entry-card a, .webgl .entry-card button {
+  background: transparent !important; box-shadow: none !important; border-color: transparent !important;
+}
+.webgl .panel, .webgl .svc, .webgl .story, .webgl .page-cover .cover, .webgl .help > .wrap, .webgl .tryit > .wrap, .webgl .compare > .wrap, .webgl .pitch-hero > * { padding-inline: 0 !important; }
+.webgl .page-cover .cover::before, .webgl .page-cover .cover::after, .webgl .rules::before { display: none; }
+.webgl .page-cover .cover { padding-top: 1rem; }
+.webgl .page-cover h1 { color: var(--paper); font-size: clamp(2.8rem, 1.6rem + 4vw, 5.2rem); }
+.webgl .page-cover .imprint { position: static; margin-top: 2.2rem; max-width: 40rem; }
+
+/* forms, dialogs and the pending tag keep their own paper colours */
+.webgl .tag, .webgl dialog.viewer, .webgl .pending-tag, .webgl .mini-tag { --ink: #1f1a1e; --ink-soft: #4b4349; color: #1f1a1e; text-shadow: none; }
+.webgl .tag p, .webgl .tag li, .webgl dialog.viewer p, .webgl .tag h2 { text-shadow: none; }
+
+/* accents that were plum on paper become manila on the dark */
+.webgl main .class-no, .webgl main .letter, .webgl main .contents a::before, .webgl main .member .role, .webgl main .fee.money,
+.webgl main .claim, .webgl main .judge-quote blockquote::before, .webgl main .calc-total, .webgl main .story-pull,
+.webgl main .rules li::before, .webgl main .rules .closing, .webgl main .entry-card .meta, .webgl main .details-card dt,
+.webgl main .feature-table th, .webgl main .qa summary .icon, .webgl main .pitch-hero h1 em, .webgl main .win .time b,
+.webgl main .try-list a, .webgl main .svc-head .class-no, .webgl main .conditions li::before, .webgl main .prop-list .letter,
+.webgl main .gap-list .letter, .webgl main .steps li::before, .webgl main [data-v-class] { color: var(--on-dark-accent) !important; }
+.webgl main .fee, .webgl main .ticks .icon { color: var(--on-dark-olive); }
+.webgl main .membership .section-intro, .webgl main .studio .section-intro, .webgl main .tryit .section-intro,
+.webgl main .try-list span, .webgl main .conditions span, .webgl main .gap-list .today, .webgl main .member p { color: var(--ink-soft); }
+.webgl main .conditions li { border-top-color: rgb(251 246 238 / .4); }
+.webgl main .section-title .sec-no { background: var(--manila); color: var(--plum-night); box-shadow: 0 0 0 4px rgb(0 0 0 / 0), 0 0 0 6px var(--manila); }
+.webgl main .sheet .stamp { color: var(--manila); border-color: var(--manila); mix-blend-mode: normal; }
+.webgl main .class-line h3 a:hover { color: var(--manila); }
+.webgl main a:not(.btn) { color: inherit; }
+.webgl main .stepper button:hover { background: rgb(255 255 255 / .12); }
+.webgl main .stepper button, .webgl main .stepper output { color: var(--ink); }
+.webgl main .membership-art .wa-badge { background: #fff; }
+.webgl main .member .face { box-shadow: 0 20px 40px -20px rgb(0 0 0 / .6); }
+
+/* work page controls on the dark */
+.webgl .filter-group button { background: rgb(251 246 238 / .1); color: var(--ink); }
+.webgl .filter-group button:hover { background: rgb(251 246 238 / .2); }
+.webgl .filter-group button[aria-pressed="true"] { background: var(--manila); color: var(--plum-night); }
+.webgl .search input { background: rgb(22 9 19 / .45); color: var(--ink); border-color: rgb(251 246 238 / .7); }
+.webgl .search input::placeholder { color: #d2c3cc; }
+.webgl .search .icon { color: #d2c3cc; }
+.webgl .entry-card .shot { box-shadow: 0 22px 40px -22px rgb(0 0 0 / .7); }
+.webgl .judge-tabs button { color: var(--ink-soft); border-color: rgb(251 246 238 / .4); }
+.webgl .judge-tabs button[aria-selected="true"] { color: #fff; }
+.webgl .qa summary { color: var(--ink); }
+.webgl .feature-table th, .webgl .feature-table td { border-bottom-color: rgb(251 246 238 / .25); }
+.webgl .win .tag { --ink: #1f1a1e; }
+
+/* landing hero: keep it inside one viewport */
+.hero-copy h1 { font-size: clamp(2.8rem, 1.5rem + 4.1vw, 5.4rem); }
+.hero-copy .season-dial { margin-top: 1.8rem; }
+@media (max-width: 760px) {
+  .webgl main > *:not(.hero)::before { background: linear-gradient(180deg, rgb(22 9 19 / 0) 0%, rgb(22 9 19 / 0) 40vh, rgb(22 9 19 / .62) calc(40vh + 12%), rgb(22 9 19 / .62) 92%, rgb(22 9 19 / 0) 100%); }
+}
+@media (prefers-contrast: more) {
+  .webgl main > *:not(.hero)::before { background: rgb(22 9 19 / .82); }
+}
+
+.schedule-aside { order: -1; }
+@media (max-width: 980px) { .schedule-aside { order: 0; } }
+
+/* ---------- balanced tint: lighter overall, darker only where the text sits ---------- */
+.webgl main > *:not(.hero)::before {
+  background: rgb(22 9 19 / .46);
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 12%, #000 88%, transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0%, #000 12%, #000 88%, transparent 100%);
+}
+.webgl main > [data-scrim="left"]::before, .webgl main > .page-cover::before { background: linear-gradient(90deg, rgb(22 9 19 / .72) 0%, rgb(22 9 19 / .5) 42%, rgb(22 9 19 / .06) 72%, rgb(22 9 19 / 0) 100%); }
+.webgl main > [data-scrim="right"]::before { background: linear-gradient(270deg, rgb(22 9 19 / .72) 0%, rgb(22 9 19 / .5) 50%, rgb(22 9 19 / .06) 78%, rgb(22 9 19 / 0) 100%); }
+@media (max-width: 980px) {
+  .webgl main > [data-scrim]::before, .webgl main > .page-cover::before { background: rgb(22 9 19 / .55); }
+}
+@media (max-width: 760px) {
+  .webgl main > *:not(.hero)::before, .webgl main > [data-scrim]::before, .webgl main > .page-cover::before {
+    background: rgb(22 9 19 / .58);
+    -webkit-mask-image: linear-gradient(180deg, transparent 0, transparent 38vh, #000 calc(38vh + 10%), #000 92%, transparent 100%);
+    mask-image: linear-gradient(180deg, transparent 0, transparent 38vh, #000 calc(38vh + 10%), #000 92%, transparent 100%);
+  }
+}
+@media (prefers-contrast: more) { .webgl main > *:not(.hero)::before { background: rgb(22 9 19 / .85) !important; } }
