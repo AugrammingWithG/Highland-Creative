@@ -1,0 +1,186 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-17T01:00:00+11:00",
+  "title": "Design System: Highland Creative",
+  "extensions": {
+    "colorMeta": {
+      "plum": { "role": "primary", "displayName": "Show Plum", "canonical": "#7a215c", "tonalRamp": ["#1b0011", "#460032", "#701653", "#953b74", "#ba5d96", "#e17fba", "#feabdb", "#fee7f3"] },
+      "plum-deep": { "role": "primary", "displayName": "Cover Plum", "canonical": "#561642", "tonalRamp": ["#1b0012", "#450333", "#672651", "#8a4671", "#ae6794", "#d489b7", "#fbaddc", "#ffe7f4"] },
+      "plum-night": { "role": "primary", "displayName": "Night Plum", "canonical": "#34102a", "tonalRamp": ["#1b0014", "#3a1630", "#5a334e", "#7c526e", "#9f7290", "#c395b3", "#e9b8d8", "#ffe6f6"] },
+      "manila": { "role": "secondary", "displayName": "Manila", "canonical": "#e3c27c", "tonalRamp": ["#110a00", "#312302", "#543e02", "#7a5c0d", "#9d7e37", "#c1a05b", "#e6c57f", "#ffedc7"] },
+      "manila-light": { "role": "secondary", "displayName": "Pale Manila", "canonical": "#f0dcac", "tonalRamp": ["#100a00", "#302302", "#514012", "#715f33", "#938053", "#b6a375", "#dbc798", "#ffedc3"] },
+      "eyelet-brass": { "role": "secondary", "displayName": "Eyelet Brass", "canonical": "#c7a258", "tonalRamp": ["#110a00", "#312201", "#553d02", "#7d5b02", "#a07c30", "#c49f55", "#e9c379", "#feecca"] },
+      "olive-deep": { "role": "tertiary", "displayName": "Pavilion Olive", "canonical": "#48541a", "tonalRamp": ["#090d00", "#212900", "#3d480b", "#5b682f", "#7c8a50", "#9ead72", "#c2d295", "#e7f7b9"] },
+      "olive": { "role": "tertiary", "displayName": "Field Olive", "canonical": "#a39a1c", "tonalRamp": ["#0d0c00", "#292601", "#484402", "#6a6403", "#8e8606", "#b2a932", "#d6ce5c", "#fcf483"] },
+      "ribbon-blue": { "role": "tertiary", "displayName": "Ribbon Blue", "canonical": "#2f6f93", "tonalRamp": ["#000d17", "#01293d", "#034767", "#27688c", "#4b8aaf", "#6eaed4", "#92d2fa", "#dff2fe"] },
+      "sky": { "role": "tertiary", "displayName": "Highland Sky", "canonical": "#d5ebf7", "tonalRamp": ["#010d15", "#162830", "#33454f", "#51646f", "#728691", "#94a9b4", "#b7cdd9", "#dcf2ff"] },
+      "ground": { "role": "neutral", "displayName": "Pasture Ground", "canonical": "#eef1e6", "tonalRamp": ["#0a0c06", "#24261e", "#41433a", "#606359", "#81847a", "#a4a69c", "#c8cbc0", "#edf0e5"] },
+      "ground-2": { "role": "neutral", "displayName": "Trodden Ground", "canonical": "#e2e7d6", "tonalRamp": ["#0a0d03", "#23271a", "#404436", "#5f6355", "#808575", "#a3a797", "#c7ccbb", "#ecf1e0"] },
+      "paper": { "role": "neutral", "displayName": "Show Paper", "canonical": "#fbfcf7", "tonalRamp": ["#0b0c08", "#252522", "#42423e", "#61625d", "#82837e", "#a5a6a1", "#c9cac5", "#eeefea"] },
+      "ink": { "role": "neutral", "displayName": "Ink", "canonical": "#1f1a1e", "tonalRamp": ["#0e090d", "#282327", "#464044", "#655f64", "#868085", "#a9a3a8", "#cec7cc", "#f3ecf2"] },
+      "ink-soft": { "role": "neutral", "displayName": "Soft Ink", "canonical": "#4b4349", "tonalRamp": ["#0f090e", "#2a2228", "#473f45", "#675e65", "#887f86", "#aba2a9", "#cfc6cd", "#f5ebf2"] },
+      "on-plum": { "role": "neutral", "displayName": "On Plum", "canonical": "#f7ecf3", "tonalRamp": ["#0f090d", "#2a2227", "#483f45", "#675e64", "#897f85", "#aca2a8", "#d0c6cc", "#f6ebf2"] },
+      "on-plum-soft": { "role": "neutral", "displayName": "On Plum Soft", "canonical": "#dcbfd1", "tonalRamp": ["#160410", "#321d2b", "#513a49", "#725868", "#94798a", "#b79cad", "#dcbfd1", "#ffe6f5"] },
+      "on-olive": { "role": "neutral", "displayName": "On Olive", "canonical": "#f4f6e6", "tonalRamp": ["#0b0c03", "#25261a", "#424336", "#616355", "#828476", "#a5a798", "#c9cbbb", "#eef0e0"] },
+      "on-olive-soft": { "role": "neutral", "displayName": "On Olive Soft", "canonical": "#d6dcb5" },
+      "error": { "role": "neutral", "displayName": "Error Red", "canonical": "#a3123a", "tonalRamp": ["#1e0005", "#4b0115", "#7e0129", "#ae2142", "#d64a62", "#fe6f84", "#feb1b7", "#ffe8e9"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Schedule-cover headlines; emphasis stays upright and turns manila on plum, plum on paper." },
+      "headline": { "displayName": "Headline", "purpose": "Section titles beside a numeral badge; footer call to action." },
+      "title": { "displayName": "Title", "purpose": "Card, member and care-card headings." },
+      "numeral": { "displayName": "Wood-type Numeral", "purpose": "Class numbers, section badges, proposed-class letters, counts, prices, the big phone number." },
+      "class-title": { "displayName": "Class Title", "purpose": "Names in schedule lists, Q&A summaries, conditions and table headers; uppercase." },
+      "lede": { "displayName": "Lede", "purpose": "Cover ledes and section intros, 34-52ch." },
+      "body": { "displayName": "Body", "purpose": "Reading text, 60-68ch." },
+      "label": { "displayName": "Label", "purpose": "Nav, buttons, field labels, status, roles, meta, imprint lines; uppercase, 0.06-0.1em." }
+    },
+    "shadows": [
+      { "name": "card", "value": "0 14px 28px -16px rgb(31 26 30 / .35), 0 2px 5px -1px rgb(31 26 30 / .12)", "purpose": "Care card, rules sheet, details card, map, cover, resting work-grid cards." },
+      { "name": "hung-tag", "value": "filter: drop-shadow(0 18px 18px rgb(52 16 42 / .28)) drop-shadow(0 3px 4px rgb(52 16 42 / .2))", "purpose": "Entry tag on its string; follows the clipped silhouette." },
+      { "name": "pinned-entry", "value": "0 22px 34px -20px rgb(0 0 0 / .55)", "purpose": "Featured entry cards at rest; hover deepens to 0 30px 44px -22px rgb(0 0 0 / .6)." },
+      { "name": "framed-plate", "value": "0 0 0 1px rgb(227 194 124 / .6), 0 18px 30px -14px rgb(0 0 0 / .45)", "purpose": "Seasonal tree frame with 6px paper mount." },
+      { "name": "badge-ring", "value": "0 0 0 4px var(--ground), 0 0 0 6px var(--plum)", "purpose": "Double ring on section numerals; ground and ring colours follow the stock." },
+      { "name": "viewer", "value": "0 40px 80px -30px rgb(0 0 0 / .6)", "purpose": "Work viewer dialog over a 72% night-plum blurred backdrop." }
+    ],
+    "motion": [
+      { "name": "ease-out", "value": "cubic-bezier(.16, 1, .3, 1)", "purpose": "All movement: lifts, reveals, swings, settles." },
+      { "name": "control", "value": ".2s-.25s", "purpose": "Button, tab and field colour transitions; button 1px lift." },
+      { "name": "card-lift", "value": ".45s ease-out", "purpose": "Entry cards straighten and lift on hover." },
+      { "name": "tag-swing", "value": "2.2s ease-out", "purpose": "Entry tag swings into its 2.2deg rest on first view (no-preference only)." },
+      { "name": "stamp-thud", "value": ".5s ease-out", "purpose": "Submitted stamp scales in from 1.6 at -7deg." },
+      { "name": "season-reveal", "value": "clip-path circle 1.1s ease-out", "purpose": "New seasonal tree revealed through an expanding circle." },
+      { "name": "quote-settle", "value": ".6s ease-out", "purpose": "Judge quote rises 10px and unblurs on swap." },
+      { "name": "reduced-motion", "value": "durations .01ms", "purpose": "All animation and transition collapsed under prefers-reduced-motion: reduce." }
+    ],
+    "breakpoints": [
+      { "name": "tag-drops", "value": "1180px" },
+      { "name": "nav-collapses", "value": "980px" },
+      { "name": "single-column", "value": "760px" },
+      { "name": "pitch-narrow", "value": "640px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Plum Button",
+      "kind": "button",
+      "refersTo": "button-plum",
+      "description": "Primary action on light stock: lodge an entry, book a review, read the manifesto.",
+      "html": "<button class=\"ds-btn ds-btn-plum\">Lodge my entry</button>",
+      "css": ".ds-btn { display: inline-flex; align-items: center; justify-content: center; gap: .55rem; min-height: 48px; padding: .7rem 1.25rem; border: 2px solid transparent; border-radius: 3px; font: 800 1.08rem/1 \"Sofia Sans Extra Condensed\", \"Arial Narrow\", sans-serif; text-transform: uppercase; letter-spacing: .07em; cursor: pointer; transition: background-color .25s, color .25s, transform .25s cubic-bezier(.16,1,.3,1); } .ds-btn:hover { transform: translateY(-1px); } .ds-btn:active { transform: translateY(1px); } .ds-btn:focus-visible { outline: 3px solid #7a215c; outline-offset: 3px; } .ds-btn-plum { background: #7a215c; color: #f7ecf3; } .ds-btn-plum:hover { background: #561642; }"
+    },
+    {
+      "name": "Manila Button",
+      "kind": "button",
+      "refersTo": "button-manila",
+      "description": "Primary action on plum or olive stock; the hero call to action.",
+      "html": "<div style=\"background:#561642;padding:24px\"><button class=\"ds-btn-m\">Start a project <svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14M13 6l6 6-6 6\"/></svg></button></div>",
+      "css": ".ds-btn-m { display: inline-flex; align-items: center; gap: .55rem; min-height: 48px; padding: .7rem 1.25rem; border: 2px solid transparent; border-radius: 3px; background: #e3c27c; color: #34102a; font: 800 1.08rem/1 \"Sofia Sans Extra Condensed\", \"Arial Narrow\", sans-serif; text-transform: uppercase; letter-spacing: .07em; cursor: pointer; transition: background-color .25s, transform .25s cubic-bezier(.16,1,.3,1); } .ds-btn-m:hover { background: #f0dcac; transform: translateY(-1px); } .ds-btn-m:focus-visible { outline: 3px solid #e3c27c; outline-offset: 3px; }"
+    },
+    {
+      "name": "Line Button",
+      "kind": "button",
+      "refersTo": "button-line",
+      "description": "Secondary action; inherits the ink of whatever stock it sits on.",
+      "html": "<button class=\"ds-btn-line\">See our work</button>",
+      "css": ".ds-btn-line { display: inline-flex; align-items: center; min-height: 48px; padding: .7rem 1.25rem; border: 2px solid currentColor; border-radius: 3px; background: transparent; color: #1f1a1e; font: 800 1.08rem/1 \"Sofia Sans Extra Condensed\", \"Arial Narrow\", sans-serif; text-transform: uppercase; letter-spacing: .07em; cursor: pointer; transition: background-color .25s, transform .25s cubic-bezier(.16,1,.3,1); } .ds-btn-line:hover { background: rgb(255 255 255 / .1); transform: translateY(-1px); } .ds-btn-line:focus-visible { outline: 3px solid #7a215c; outline-offset: 3px; }"
+    },
+    {
+      "name": "Ledger Field",
+      "kind": "input",
+      "refersTo": "field",
+      "description": "Form field written on a ruled line; used on tags, paper and dark stock.",
+      "html": "<div class=\"ds-field\"><label for=\"ds-n\">Your name</label><input id=\"ds-n\" placeholder=\"Jane Citizen\"></div>",
+      "css": ".ds-field { display: grid; gap: .3rem; background: #e3c27c; padding: 1.25rem; max-width: 360px; } .ds-field label { font: 800 .92rem/1.2 \"Sofia Sans Extra Condensed\", \"Arial Narrow\", sans-serif; text-transform: uppercase; letter-spacing: .08em; color: #1f1a1e; } .ds-field input { min-height: 46px; padding: .55rem .2rem .45rem; border: 0; border-bottom: 2px solid rgb(31 26 30 / .55); border-radius: 0; background: transparent; font: 400 1.05rem \"Sofia Sans\", system-ui, sans-serif; color: #1f1a1e; caret-color: #7a215c; transition: border-color .2s, background-color .2s; } .ds-field input::placeholder { color: #5a4320; opacity: 1; } .ds-field input:hover { background-color: rgb(255 255 255 / .18); } .ds-field input:focus-visible { outline: none; border-bottom-color: #7a215c; background-color: rgb(255 255 255 / .3); }"
+    },
+    {
+      "name": "Numbered Section Nav",
+      "kind": "nav",
+      "refersTo": "nav-sections",
+      "description": "Header nav as a numbered schedule; plum underline marks the current page.",
+      "html": "<nav class=\"ds-nav\"><ol><li><a href=\"#\" aria-current=\"page\"><span>1</span>Services</a></li><li><a href=\"#\"><span>2</span>Wild Apricot</a></li><li><a href=\"#\"><span>3</span>Our work</a></li></ol></nav>",
+      "css": ".ds-nav { background: rgb(238 241 230 / .94); padding: .75rem 1rem; border-bottom: 1px solid rgb(72 84 26 / .18); } .ds-nav ol { list-style: none; display: flex; gap: 1.25rem; margin: 0; padding: 0; } .ds-nav a { display: inline-flex; align-items: baseline; gap: .35rem; padding: .45rem .2rem; font: 700 1.08rem/1 \"Sofia Sans Extra Condensed\", \"Arial Narrow\", sans-serif; text-transform: uppercase; letter-spacing: .06em; text-decoration: none; color: #1f1a1e; border-bottom: 3px solid transparent; } .ds-nav a span { font: 400 .8rem Bevan, Rockwell, serif; color: #7a215c; letter-spacing: 0; } .ds-nav a:hover { border-bottom-color: #a39a1c; } .ds-nav a[aria-current=page] { border-bottom-color: #7a215c; color: #561642; } .ds-nav a:focus-visible { outline: 3px solid #7a215c; outline-offset: 3px; }"
+    },
+    {
+      "name": "Class Ribbons",
+      "kind": "chip",
+      "refersTo": "class-ribbon",
+      "description": "Swallowtail ribbons linking to each numbered class; colours cycle plum, olive, blue.",
+      "html": "<ol class=\"ds-ribbons\"><li><a href=\"#\"><b>1</b>Website design</a></li><li><a href=\"#\"><b>2</b>Wild Apricot sites</a></li><li><a href=\"#\"><b>3</b>Print &amp; advertising</a></li></ol>",
+      "css": ".ds-ribbons { list-style: none; display: flex; flex-wrap: wrap; gap: .6rem .5rem; margin: 0; padding: 0; } .ds-ribbons a { --rb: #7a215c; display: inline-flex; align-items: center; gap: .55rem; min-height: 46px; padding: .55rem 1.9rem .55rem .9rem; background: var(--rb); color: #fff; text-decoration: none; clip-path: polygon(0 0, 100% 0, calc(100% - 14px) 50%, 100% 100%, 0 100%); font: 700 1.02rem/1.1 \"Sofia Sans Extra Condensed\", \"Arial Narrow\", sans-serif; text-transform: uppercase; letter-spacing: .06em; transition: transform .3s cubic-bezier(.16,1,.3,1), filter .2s; } .ds-ribbons li:nth-child(3n+2) a { --rb: #48541a; } .ds-ribbons li:nth-child(3n) a { --rb: #2f6f93; } .ds-ribbons b { font: 400 .85rem Bevan, Rockwell, serif; opacity: .85; } .ds-ribbons a:hover { transform: translateY(-3px); filter: brightness(1.08); } .ds-ribbons a:focus-visible { outline: 3px solid #7a215c; outline-offset: 3px; }"
+    },
+    {
+      "name": "Entry Tag",
+      "kind": "custom",
+      "refersTo": "entry-tag",
+      "description": "Signature: manila tag with clipped corners and punched eyelet, holding a form; submitted state is a rotated stamp.",
+      "html": "<div class=\"ds-tag-hang\"><div class=\"ds-tag\"><div class=\"ds-tag-head\"><h2>Entry form</h2><span>No. 0412</span></div><span class=\"ds-stamp\">Entry received<small>No. 0412</small></span></div></div>",
+      "css": ".ds-tag-hang { max-width: 340px; padding-top: 12px; transform: rotate(2.2deg); filter: drop-shadow(0 18px 18px rgb(52 16 42 / .28)) drop-shadow(0 3px 4px rgb(52 16 42 / .2)); } .ds-tag { position: relative; background: #e3c27c; color: #1f1a1e; clip-path: polygon(26px 0, calc(100% - 26px) 0, 100% 26px, 100% 100%, 0 100%, 0 26px); padding: 3.4rem 1.5rem 1.6rem; } .ds-tag::before { content: \"\"; position: absolute; top: 14px; left: 50%; width: 26px; height: 26px; margin-left: -13px; border-radius: 50%; background: #eef1e6; box-shadow: 0 0 0 5px #c7a258, 0 0 0 6px rgb(120 86 30 / .5), inset 0 2px 3px rgb(0 0 0 / .25); } .ds-tag-head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; border-bottom: 2px solid #1f1a1e; padding-bottom: .5rem; margin-bottom: 1rem; } .ds-tag-head h2 { margin: 0; font: 400 1.65rem/1.1 Bevan, Rockwell, serif; } .ds-tag-head span { font: 700 1.05rem \"Sofia Sans Extra Condensed\", \"Arial Narrow\", sans-serif; letter-spacing: .08em; color: #561642; } .ds-stamp { display: inline-grid; place-items: center; gap: .1rem; padding: .55rem 1rem; border: 3px double #7a215c; color: #7a215c; border-radius: 4px; transform: rotate(-7deg); font: 800 1.35rem/1 \"Sofia Sans Extra Condensed\", \"Arial Narrow\", sans-serif; text-transform: uppercase; letter-spacing: .12em; mix-blend-mode: multiply; } .ds-stamp small { font-size: .85rem; letter-spacing: .1em; }"
+    },
+    {
+      "name": "Schedule List",
+      "kind": "custom",
+      "refersTo": "class-list",
+      "description": "Ruled schedule of numbered classes with dotted leaders to a fee.",
+      "html": "<ol class=\"ds-classes\"><li><span class=\"n\">1</span><div class=\"l\"><h3>Website design</h3><span class=\"ld\"></span><span class=\"fee\">By quote</span></div></li><li><span class=\"n\">7</span><div class=\"l\"><h3>Website Care Plan</h3><span class=\"ld\"></span><span class=\"fee money\">$360 + GST a year</span></div></li></ol>",
+      "css": ".ds-classes { list-style: none; margin: 0; padding: 0; border-top: 3px solid #1f1a1e; max-width: 640px; } .ds-classes li { display: grid; grid-template-columns: 4.25rem minmax(0,1fr); gap: 1.25rem; padding: 1.6rem 0 1.5rem; border-bottom: 1px solid rgb(31 26 30 / .25); } .ds-classes .n { font: 400 2.6rem/1 Bevan, Rockwell, serif; color: #7a215c; } .ds-classes .l { display: flex; align-items: baseline; gap: .6rem; } .ds-classes h3 { margin: 0; font: 800 1.45rem/1.15 \"Sofia Sans Extra Condensed\", \"Arial Narrow\", sans-serif; text-transform: uppercase; letter-spacing: .05em; color: #1f1a1e; } .ds-classes .ld { flex: 1; min-width: 1.5rem; border-bottom: 2px dotted rgb(31 26 30 / .45); transform: translateY(-.28em); } .ds-classes .fee { font: 700 1.05rem/1.2 \"Sofia Sans Extra Condensed\", \"Arial Narrow\", sans-serif; letter-spacing: .05em; text-transform: uppercase; color: #48541a; } .ds-classes .fee.money { color: #7a215c; }"
+    },
+    {
+      "name": "Entry Card",
+      "kind": "card",
+      "refersTo": "entry-card",
+      "description": "Portfolio entry as a tilted paper mount with a pinned mini tag; straightens and lifts on hover.",
+      "html": "<a class=\"ds-entry\" href=\"#\"><span class=\"ds-mini\">1st</span><div class=\"shot\"></div><h3>Farm Writers' Association</h3><p>Membership site</p></a>",
+      "css": ".ds-entry { position: relative; display: block; width: 280px; text-decoration: none; color: #1f1a1e; background: #fbfcf7; padding: .75rem .75rem 1.1rem; box-shadow: 0 22px 34px -20px rgb(0 0 0 / .55); transform: rotate(-.6deg); transition: transform .45s cubic-bezier(.16,1,.3,1), box-shadow .45s cubic-bezier(.16,1,.3,1); } .ds-entry:hover { transform: rotate(0) translateY(-6px); box-shadow: 0 30px 44px -22px rgb(0 0 0 / .6); } .ds-entry:focus-visible { outline: 3px solid #7a215c; outline-offset: 4px; } .ds-entry .shot { aspect-ratio: 4 / 3; background: #d5ebf7; } .ds-entry h3 { margin: .9rem 0 0; font: 400 1.2rem/1.15 Bevan, Rockwell, serif; } .ds-entry p { margin: .35rem 0 0; font: 700 .9rem \"Sofia Sans Extra Condensed\", \"Arial Narrow\", sans-serif; text-transform: uppercase; letter-spacing: .07em; color: #7a215c; } .ds-mini { position: absolute; top: -12px; right: 18px; z-index: 2; padding: 1.15rem .7rem .45rem; background: #e3c27c; color: #34102a; clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%, 0 10px); font: 800 .85rem/1 \"Sofia Sans Extra Condensed\", \"Arial Narrow\", sans-serif; text-transform: uppercase; letter-spacing: .08em; transform: rotate(4deg); } .ds-mini::before { content: \"\"; position: absolute; top: 5px; left: 50%; width: 8px; height: 8px; margin-left: -4px; border-radius: 50%; background: #48541a; box-shadow: 0 0 0 2px #c7a258; }"
+    },
+    {
+      "name": "Section Numeral Title",
+      "kind": "custom",
+      "refersTo": "section-numeral",
+      "description": "Bevan numeral in a double-ringed disc beside a section headline.",
+      "html": "<div class=\"ds-sec\"><span class=\"no\">1</span><h2>Classes for 2026</h2></div>",
+      "css": ".ds-sec { display: flex; align-items: flex-start; gap: 1.25rem; background: #eef1e6; padding: 1rem; } .ds-sec .no { flex: none; display: grid; place-items: center; width: 4rem; aspect-ratio: 1; font: 400 2rem/1 Bevan, Rockwell, serif; color: #fbfcf7; background: #7a215c; border-radius: 50%; box-shadow: 0 0 0 4px #eef1e6, 0 0 0 6px #7a215c; } .ds-sec h2 { margin: 0; padding-top: .2em; font: 400 2.6rem/1.04 Bevan, Rockwell, serif; letter-spacing: -.01em; color: #1f1a1e; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Highlands Show Schedule",
+    "overview": "The system is the printed matter of a country show: a schedule of classes, entry tags, judges' cards and prize ribbons, set on a pale pasture ground. Services are numbered classes, portfolio pieces are entries pinned in the pavilion, testimonials are the judges' words, and every enquiry is lodged on a manila tag. The look is warm, tactile and confident. It reads as paper and card stock, never as a software interface.\n\nDensity is moderate and rhythm is generous. Sections are separated by full-bleed changes of stock (pasture ground, sky panel, olive pavilion, manila studio band, plum-night gate) rather than by divider lines. Inside a section, information is set the way a schedule is printed: ruled lists with letterpress numerals, dotted leaders running to a fee, condensed capitals for class names. Composition is deliberately asymmetric. The hero is an off-centre plum cover with a string-hung tag overlapping its edge, and feature grids are 8/4 or 5/7 splits rather than equal columns.\n\nThe build rejects the generic studio template of a centred hero, three service cards and a logo strip. Seasonality is a durable brand commitment: the framed tree photograph changes with spring, summer, autumn and winter, the way the studio's own site already rotates its imagery.",
+    "keyCharacteristics": [
+      "Plum card-stock covers with a double manila keyline, on a pale pasture ground.",
+      "Manila tags with clipped top corners, a punched brass eyelet and a hanging string.",
+      "Bevan wood-type for headings and every numeral; condensed capitals for labels; Sofia Sans for reading.",
+      "Ruled schedule lists with dotted leaders and fees set flush right.",
+      "Paper objects carry slight alternating tilts and soft, long shadows.",
+      "States are printed: a rotated double-ruled stamp confirms each submission."
+    ],
+    "rules": [
+      { "name": "The Card-Stock Rule", "body": "Dark surfaces are always full stock (Cover Plum, Night Plum or Pavilion Olive), never tinted panels. On dark stock, text uses its matching on-colour, and manila is the only accent.", "section": "colors" },
+      { "name": "The Three Ribbons Rule", "body": "Any coloured sequence (class ribbons, plan steps) cycles plum, pavilion olive, ribbon blue in that order. Ribbon text is white.", "section": "colors" },
+      { "name": "The Wood-Type Numeral Rule", "body": "Every numeral that counts or ranks something is set in Bevan, whether it is a class number, badge, count, price or phone number. Prose figures stay in Sofia Sans, using tabular lining numerals where they align.", "section": "typography" },
+      { "name": "The Single-Weight Display Rule", "body": "Bevan is only ever set at 400. Hierarchy comes from size and stock colour, never from faux bold.", "section": "typography" },
+      { "name": "The Ruled Schedule Rule", "body": "Lists of classes, conditions, features or contents use a heavy top rule, hairline row rules and, where there is a value, a dotted leader. They never become a grid of equal cards.", "section": "layout" },
+      { "name": "The Hung Paper Rule", "body": "Only paper objects cast shadows, and each shadow falls downward with a negative spread. A hard offset shadow is never used.", "section": "elevation" },
+      { "name": "The Tilt Budget Rule", "body": "Paper objects tilt by small, alternating amounts: cards ±0.5–1°, the hung tag 2.2°, mini-tags 4°, pending tags −4°. Stamps alone sit at −7°. On hover a tilted card straightens and lifts.", "section": "elevation" },
+      { "name": "The Cut-Card Rule", "body": "A shape gets its character from a clipped corner, a notch or a punched hole, never from a large radius. Nothing rectangular is rounded above 4px.", "section": "shapes" }
+    ],
+    "dos": [
+      "Do separate sections by changing full-bleed stock (ground, sky, olive-deep, manila, night plum) rather than drawing divider lines between them.",
+      "Do set every counting or ranking numeral in Bevan 400, and every label, button and class name in Sofia Sans Extra Condensed capitals at 0.05–0.1em tracking.",
+      "Do set lists as ruled schedules: a 3px ink top rule, hairline rows and dotted leaders to a value.",
+      "Do cycle coloured sequences plum, olive-deep, ribbon blue.",
+      "Do give paper objects small alternating tilts and soft downward shadows tinted night plum or ink. Straighten and lift them on hover.",
+      "Do confirm a submitted state with the rotated double-ruled stamp.",
+      "Do use only manila as the accent on plum or olive stock, with the matching on-colour for text.",
+      "Do use cubic-bezier(.16, 1, .3, 1) for movement and honour prefers-reduced-motion. Under reduced motion every animation and transition collapses to near zero.",
+      "Do keep icons as stroked inline SVG (2px stroke, round caps) from the shared sprite."
+    ],
+    "donts": [
+      "Don't centre a hero or lay services out as three equal cards. Covers sit off-centre and services are a numbered, ruled schedule.",
+      "Don't round rectangles above 4px. Character comes from clipped corners, notches and punched eyelets.",
+      "Don't use hard offset shadows or neutral grey glows. Use the Hung Paper Rule.",
+      "Don't set Bevan bold or italic, or use it for body copy, labels or buttons.",
+      "Don't put a short uppercase eyebrow or kicker above a headline. Condensed caps belong on labels, imprint lines and class names, not as decoration over a heading.",
+      "Don't introduce a new hue for a sequence or state. Extend the plum, olive and ribbon-blue cycle or reuse a stock."
+    ]
+  }
+}

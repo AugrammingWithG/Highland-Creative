@@ -1,0 +1,130 @@
+{
+  "title": "Choose the visual world for the Highland Creative concept",
+  "question": "The roll assigned The Highlands Show Schedule. Keep it, take an alternate, or re-roll.",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "The Highlands Show Schedule",
+      "kicker": "THE ROLL",
+      "lineage": "Southern Highlands country show prize schedules, entry tags and pavilion ribbons",
+      "thesis": "Forty years of work entered, classed and judged like a show pavilion, and the clients are the judges.",
+      "palette": ["#6B2160", "#5E7A1F", "#D9B25C", "#BFE0F0", "#1E1A1D"],
+      "materials": ["coloured card-stock schedule covers", "string-tied manila entry tags", "letterpress class numerals", "satin rosettes"],
+      "viewport": "Schedule cover, set off-centre: 'Highland Creative · Schedule of Classes · Est. 1985', with a live entry tag on a string (pick a class, name, phone) and tap-to-call. Sections numbered down the side as navigation.",
+      "risk": "Tips into country-fair kitsch if the wood type and ribbons are overused; it has to stay a working studio site.",
+      "raised": [
+        { "from": "challenger-bbs", "raise": "A live 'Gates open' line shows whether the Mittagong studio is open right now, from real business hours." },
+        { "from": "challenger-raku", "raise": "Asymmetry as law: the schedule sits off-centre and tags hang at their own angles, with no centred hero." },
+        { "from": "challenger-cartoon", "raise": "Every section opens with its own numbered section card before its classes, like a bumper." },
+        { "from": "challenger-phosphor", "raise": "Form states print themselves as a steward's stamp ('ENTRY RECEIVED · No. 0412'), not toast chrome." }
+      ]
+    },
+    {
+      "id": "model-pick",
+      "label": "The Typesetter's Proof",
+      "kicker": "IMPECCABLE’S PICK",
+      "lineage": "1985 job tickets, galley proofs and printer's specimen books",
+      "thesis": "The studio's hand-drawn-and-typeset origin, shown as a live proof sheet to approve.",
+      "palette": ["#6B2160", "#7C8A23", "#F2F2EE", "#1B1B1B", "#E4007C"],
+      "materials": ["crop and registration marks", "PMS swatch strips", "galley proofs", "rubber approval stamps"],
+      "viewport": "A press sheet with crop marks around the hero, a job ticket filled in with the enquiry, and plum and olive swatch strips along the bleed.",
+      "risk": "The most familiar choice: print-proof hairlines and mono labels are where most runs in this category land."
+    },
+    {
+      "id": "challenger-pattern",
+      "label": "Made to Measure",
+      "verdict": "competitive",
+      "lineage": "home sewing pattern envelopes and tissue",
+      "thesis": "Every service is a pattern with views A, B and C, and the back of the envelope says what's included.",
+      "palette": ["#E9DFC6", "#141414", "#C2272D", "#6B2160", "#9DB4A0"],
+      "materials": ["crackling pattern tissue", "dashed cutting lines", "gouache envelope figures"],
+      "viewport": "Envelope front: three service views lettered A/B/C; pick one and its cut line turns solid; yardage-style table of inclusions on the back.",
+      "case": "Fuses well on clarity (service tiers map to views; the chosen line turns solid). Weaker on audience: reads hobby-craft for a business studio.",
+      "risk": "Pattern tissue drifts toward a beige craft-shop look if the red isn't committed.",
+      "hero": "https://impeccable.style/worlds/cards/fashion-folded-worlds-sewing-pattern-envelope-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/fashion-folded-worlds-sewing-pattern-envelope.webp"
+    },
+    {
+      "id": "challenger-hoarding",
+      "label": "The Showground Fence",
+      "verdict": "competitive",
+      "lineage": "fly-posted festival flyers on a country hoarding",
+      "thesis": "Bowral's event posters pasted layer on layer, with one calm white enquiry panel on top.",
+      "palette": ["#111111", "#6B2160", "#F06A1D", "#5E7A1F", "#F4F1EA"],
+      "materials": ["riso-grain gouache flats", "torn deckle edges", "pasted stickers"],
+      "viewport": "Full-bleed paste-up of seasonal posters; 'CREATIVE' with one colour per letter; a white finder card with the enquiry.",
+      "case": "Locals know show posters on the fence (holds audience). Loses on clarity for a 40-year studio pitch.",
+      "risk": "Loud; can read as a festival rather than a considered studio.",
+      "hero": "https://impeccable.style/worlds/cards/fly-posted-festival-hoarding-built-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/fly-posted-festival-hoarding-built.webp"
+    },
+    {
+      "id": "challenger-cartoon",
+      "label": "Saturday Title Card",
+      "verdict": "declined",
+      "lineage": "Saturday-morning cartoon title cards",
+      "thesis": "Steven and Helen's caricatures as the stars of the show.",
+      "palette": ["#FFD23F", "#3BB8E8", "#111111", "#E8412C"],
+      "materials": ["cel paint", "thick outlines", "VHS bleed"],
+      "viewport": "Starburst card with the logo bowed across it.",
+      "risk": "Juvenile for a 40-year studio.",
+      "case": "Their own caricatures fit, but it reads childish and hides the offer.",
+      "kept": "Each section announced by its own card.",
+      "hero": "https://impeccable.style/worlds/cards/pop-culture-shelf-saturday-title-card-hero.webp"
+    },
+    {
+      "id": "challenger-raku",
+      "label": "Raku Smoke Flash",
+      "verdict": "declined",
+      "lineage": "raku pottery firing",
+      "thesis": "Craft through fire and chance.",
+      "palette": ["#141210", "#D8D6CF", "#E2602A"],
+      "materials": ["carbonised clay", "crackle glaze"],
+      "viewport": "Soot-black ground with a glowing vessel.",
+      "risk": "Moody and off-brand for plum and olive.",
+      "case": "No link to the studio or its clients.",
+      "kept": "Asymmetry as the compositional law.",
+      "hero": "https://impeccable.style/worlds/cards/clay-ceramics-fracture-raku-smoke-flash-hero.webp"
+    },
+    {
+      "id": "challenger-bbs",
+      "label": "ANSI Nightboard",
+      "verdict": "declined",
+      "lineage": "dial-up bulletin boards",
+      "thesis": "The studio as a text-mode BBS.",
+      "palette": ["#000000", "#00C8C8", "#C800C8", "#FFFFFF"],
+      "materials": ["block characters", "80×25 grid"],
+      "viewport": "ANSI title screen with numbered menu.",
+      "risk": "No one in the audience identifies with it.",
+      "case": "Loses on both axes.",
+      "kept": "Scarce live presence (is the studio open now?).",
+      "hero": "https://impeccable.style/worlds/cards/medium-native-ansi-bbs-nightboard-hero.webp"
+    },
+    {
+      "id": "challenger-phosphor",
+      "label": "Phosphor Terminal",
+      "verdict": "declined",
+      "lineage": "green-screen terminals",
+      "thesis": "The enquiry as a typed dialogue.",
+      "palette": ["#050805", "#33FF66", "#145A28"],
+      "materials": ["scanline glow", "afterimage"],
+      "viewport": "One scrolling transcript.",
+      "risk": "Cold and technical for a warm family studio.",
+      "case": "Loses on both axes.",
+      "kept": "System states print themselves instead of appearing as chrome.",
+      "hero": "https://impeccable.style/worlds/cards/signals-instruments-phosphor-terminal-midnight-hero.webp"
+    }
+  ],
+  "reroll": { "registers": ["safer", "bolder"] },
+  "buildPath": { "value": "code", "toggle": false },
+  "canon": true,
+  "canonCard": {
+    "label": "The category standard",
+    "thesis": "A clean modern design-studio site: seasonal hero, portfolio grid, testimonials, contact, done impeccably.",
+    "palette": ["#FFFFFF", "#1E1A1D", "#6B2160", "#5E7A1F"],
+    "materials": ["clean grid", "their seasonal tree artwork", "device mock-ups"],
+    "viewport": "Full-bleed seasonal tree, big headline, two buttons, then services and a work grid.",
+    "risk": "Polished but indistinguishable from every other studio site."
+  },
+  "steer": true
+}
