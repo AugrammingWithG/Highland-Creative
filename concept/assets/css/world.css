@@ -77,7 +77,9 @@ body.world-point { cursor: pointer; }
 
 /* ---------- inner pages ---------- */
 .webgl .page-cover { padding-bottom: 32vh; }
-.webgl .page-cover .cover { max-width: 50rem; }
+.webgl .page-cover .cover { max-width: 46rem; grid-template-columns: minmax(0, 1fr); }
+.webgl .page-cover .cover-side { justify-items: start; text-align: left; }
+.webgl .page-cover .cover-side .big { font-size: clamp(2.6rem, 1.8rem + 3vw, 4.6rem); }
 .webgl .page-cover .cover.solo { max-width: 42rem; }
 .webgl .svc { background: var(--paper); padding: clamp(1.5rem, 3.4vw, 3rem); margin-bottom: 16vh; box-shadow: 0 30px 60px -30px rgb(31 26 30 / .55); border-top: 0; }
 .webgl .svc-head { position: static; }
@@ -170,6 +172,8 @@ body.world-point { cursor: pointer; }
   .webgl .svc { margin-bottom: 9vh; }
   .webgl .membership .membership-art { margin-top: 34vh; }
   .webgl .page-cover { padding-bottom: 46vh; }
+  .webgl main > [data-station]:not([data-hero]):not(.page-cover), .webgl main > .wrap > [data-station], .webgl main .svc[data-station] { padding-top: 52vh; }
+  .webgl main .svc[data-station] { background: linear-gradient(to bottom, transparent 52vh, var(--paper) 52vh); box-shadow: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   .motion .rv:not(.in), .motion .rv-h .w { opacity: 1; transform: none; }
